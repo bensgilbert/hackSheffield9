@@ -5,9 +5,34 @@
 	let mapElement;
 	let map;
 	let lastClickedContent = '';
+	// let text = "";
+	let marker;
 
 	onMount(() => {
 		loadGoogleMaps();
+
+		document.getElementById('serviceForm');
+		form.addEventListener('submit', (event) => {
+			event.preventDefault();
+
+			// Collect selected items
+			const selectedItems = [];
+			markerData.items.forEach((item, index) => {
+				const checkbox = form.querySelector(`input[name="item${index}"]`);
+				if (checkbox && checkbox.checked) {
+					selectedItems.push({
+						itemName: item[0],
+						quantity: item[1]
+					});
+				}
+			});
+
+			// Log the selected items for now or handle as needed
+			console.log('Selected Items:', selectedItems);
+
+			// Perform further actions (e.g., send data to a server)
+			alert('Thank you for offering to help!');
+		});
 	});
 
 	// Loading google maps to the page
@@ -16,7 +41,7 @@
 		const { Loader } = pkg;
 
 		const loader = new Loader({
-			apiKey: 'REPLACE',
+			apiKey: 'AIzaSyDB8EtJ3vK8gwJgTgjeNyvDLkUOYnal1GM',
 			version: 'weekly',
 			libraries: ['places', 'maps']
 		});
@@ -35,12 +60,28 @@
 		// Key locations, will be the orders
 		const markers = [
 			{
+				username: 'superuser123',
+				message: 'Please I need stuff',
+				items: [
+					['bread', 2, false],
+					['bananas', 1, false],
+					['water', 4, false],
+					['loo roll', 3, false]
+				],
 				locationName: 'The Diamond',
 				lat: 53.38182330444414,
 				lng: -1.4816028478377632,
 				address: '32 Leavygreave Rd<br>Sheffield<br>S3 7RD'
 			},
 			{
+				username: 'superuser123',
+				message: 'Please I need stuff',
+				items: [
+					['bread', 2, false],
+					['bananas', 1, false],
+					['water', 4, false],
+					['loo roll', 3, false]
+				],
 				locationName: 'Sir Frederick Mappin Building',
 				lat: 53.38196206804772,
 				lng: -1.4788498911897958,
@@ -76,7 +117,36 @@
 
 			google.maps.event.addListener(marker, 'click', () => {
 				// Update the last clicked content with the marker's title and description
-				lastClickedContent = `<h3>${markerData.locationName}</h3><p>${markerData.address}</p>`;
+				lastClickedContent = `
+					<h3>${markerData.locationName}</h3>
+					<p>${markerData.address}</p>
+					<p><strong>Message:</strong> ${markerData.message}</p>
+					<form id="serviceForm">
+						<h4>Items Requested:</h4>
+						<ul>
+						${markerData.items
+							.map(
+								(item, index) => `
+							<li>
+								<label>
+								${item[0]} (${item[1]} requested)
+								<input 
+									type="number" 
+									name="item${index}" 
+									min="0" 
+									step="1" 
+									value="0" 
+									data-max="${item[1]}"
+									class="number-input"
+								>
+								</label>
+							</li>`
+							)
+							.join('')}
+						</ul>
+						<button type="submit">Submit</button>
+					</form>
+				`;
 			});
 
 			bounds.extend(new google.maps.LatLng(marker.lat, marker.lng));
@@ -116,9 +186,17 @@
 	<div bind:this={mapElement} class="mb-6 mt-4 h-[400px] w-full rounded-md bg-gray-300"></div>
 </div>
 
-<div id="marker-content">
-	<!-- Info Section -->
-	{@html lastClickedContent}
+<div class="container mx-auto p-4">
+	<div class="container mx-auto mb-2 rounded-md bg-blue-600 p-4 text-white">OrderDetails</div>
+
+	<div class="container mx-auto mb-6 w-full rounded-md bg-gray-300 p-4">
+		<div id="text" class="m-auto">
+			<p>The Diamond</p>
+			<p>32 Leavygreave Rd</p>
+			<p>Sheffield</p>
+			<p>S3 7RD</p>
+		</div>
+	</div>
 </div>
 
 <style>
@@ -127,4 +205,6 @@
 		background-color: #4f46e5; /* Tailwind Indigo color */
 		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	}
+
+	
 </style>
