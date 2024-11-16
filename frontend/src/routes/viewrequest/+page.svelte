@@ -4,14 +4,9 @@
 
 	let mapElement;
 	let map;
-<<<<<<< HEAD
-	let lastClickedContent = '';
-	// let text;
-=======
 	let searchInputElement; // Reference to the search input element
 	let pinLatLng = { lat: 13.736717, lng: 100.523186 };
 	let isCentering = false;
->>>>>>> 804e64c29be8990340ed240e555f7428f0b6d33b
 
 	onMount(() => {
 		loadGoogleMaps();
@@ -148,12 +143,6 @@
 		/>
 	</div>
 
-<<<<<<< HEAD
-<div id="marker-content">
-	<!-- Info Section -->
-	{@html lastClickedContent}
-
-=======
 	<!-- Map Section -->
 	<div class="relative">
 		<div bind:this={mapElement} class="h-[400px] w-full rounded-md bg-gray-300"></div>
@@ -230,7 +219,6 @@
 			</button>
 		</form>
 	</div>
->>>>>>> 804e64c29be8990340ed240e555f7428f0b6d33b
 </div>
 
 <style>
