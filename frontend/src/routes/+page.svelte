@@ -13,7 +13,7 @@
 		const { Loader } = pkg;
 
 		const loader = new Loader({
-			apiKey: "cheeky-bastard",
+			apiKey: "AIzaSyCP51atk-DnFmwSZOAicKCwumFOxeVoV3w",
 			version: 'weekly',
 			libraries: ['places', 'maps']
 		});
@@ -36,15 +36,28 @@
 			mapId: 'your-map-id' // Replace or remove this
 		});
 
-		const marker = new google.maps.Marker({
-			position: { lat: 13.7434332, lng: 100.5534927 },
-			map: map,
-			title: 'Hello World!'
-		});
+		// Request user's location
+		if (navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition(position => {
+				const userLat = position.coords.latitude;
+				const userLng = position.coords.longitude;
 
-		marker.addListener('click', function () {
-			alert('Marker was clicked!');
-		});
+				// Center the map to the user's location
+				map.setCenter({ lat: userLat, lng: userLng });
+				map.setZoom(15); // Zoom in a bit to focus on the user's location
+
+				// Add a marker for the user's location
+				const userMarker = new google.maps.Marker({
+					position: { lat: userLat, lng: userLng },
+					map: map,
+					title: 'You are here!'
+				});
+			}, (error) => {
+				console.error('Error getting location: ', error);
+			});
+		} else {
+			console.error('Geolocation is not supported by this browser.');
+		}
 	}
 </script>
 
