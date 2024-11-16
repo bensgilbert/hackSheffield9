@@ -1,19 +1,22 @@
 <script>
+	import { myStyle } from '$lib/javascript/map';
 	import { onMount } from 'svelte';
 
 	let mapElement;
 	let map;
+	let lastClickedContent = '';
 
 	onMount(() => {
 		loadGoogleMaps();
 	});
 
+	// Loading google maps to the page
 	async function loadGoogleMaps() {
 		const pkg = await import('@googlemaps/js-api-loader');
 		const { Loader } = pkg;
 
 		const loader = new Loader({
-			apiKey: "AIzaSyCP51atk-DnFmwSZOAicKCwumFOxeVoV3w",
+			apiKey: 'REPLACE',
 			version: 'weekly',
 			libraries: ['places', 'maps']
 		});
@@ -29,79 +32,79 @@
 	function initMap() {
 		const google = window.google;
 
+		// Key locations, will be the orders
 		const markers = [
 			{
 				locationName: 'The Diamond',
 				lat: 53.38182330444414,
 				lng: -1.4816028478377632,
 				address: '32 Leavygreave Rd<br>Sheffield<br>S3 7RD'
+			},
+			{
+				locationName: 'Sir Frederick Mappin Building',
+				lat: 53.38196206804772,
+				lng: -1.4788498911897958,
+				address: 'Mappin St<br>Sheffield<br>S1 3JD'
 			}
 		];
 
-		const markerIcon = '/shopping-basket.png'
+		const markerIcon = '/shopping-basket.png';
 
 		const mapOptions = {
 			center: { lat: 13.736717, lng: 100.523186 },
 			zoom: 12,
 			disableDefaultUI: true,
 			gestureHandling: 'greedy',
-			mapId: 'your-map-id'
-		}
+			styles: myStyle
+		};
 
 		map = new google.maps.Map(mapElement, mapOptions);
 
-		const infoWindow = new google.maps.InfoWindow({
-			minWidth: 200,
-			maxWidth: 200
-		});
+		const bounds = new google.maps.LatLngBounds();
 
-		const marker = new google.maps.Marker({
-			position: { lat: markers[0]['lat'], lng: markers[0]['lng'] },
-			map: map,
-			icon: {
-				url: markerIcon,
-				scaledSize: new google.maps.Size(40, 40)
-			}
-		});
-		
-		function createInfoWindows() {
-			// Create content for the InfoWindow as a string
-			const infoWindowContent = `
-				<div class="marker-content">
-				<h3>${markers[0]['locationName']}</h3>
-				<address>
-					<p>${markers[0]['address']}</p>
-				<address>
-				</div>
-			`;
-
-			google.maps.event.addListener(marker, 'click', function() {
-				infoWindow.setContent(infoWindowContent);
-				infoWindow.open(map, marker);
+		// Adds custom marker and adds listener to click on them
+		markers.forEach((markerData) => {
+			const marker = new google.maps.Marker({
+				position: { lat: markerData.lat, lng: markerData.lng },
+				map: map,
+				icon: {
+					url: markerIcon,
+					scaledSize: new google.maps.Size(40, 40)
+				},
+				title: markerData.title
 			});
-		}
 
-		createInfoWindows()
+			google.maps.event.addListener(marker, 'click', () => {
+				// Update the last clicked content with the marker's title and description
+				lastClickedContent = `<h3>${markerData.locationName}</h3><p>${markerData.address}</p>`;
+			});
+
+			bounds.extend(new google.maps.LatLng(marker.lat, marker.lng));
+			map.fitBounds(bounds);
+		});
 
 		// Request user's location
 		if (navigator.geolocation) {
-			navigator.geolocation.getCurrentPosition(position => {
-				const userLat = position.coords.latitude;
-				const userLng = position.coords.longitude;
+			navigator.geolocation.getCurrentPosition(
+				(position) => {
+					const userLat = position.coords.latitude;
+					const userLng = position.coords.longitude;
 
-				// Center the map to the user's location
-				map.setCenter({ lat: userLat, lng: userLng });
-				map.setZoom(15); // Zoom in a bit to focus on the user's location
+					// Center the map to the user's location
+					map.setCenter({ lat: userLat, lng: userLng });
+					map.setZoom(15); // Zoom in a bit to focus on the user's location
 
-				// Add a marker for the user's location
-				const userMarker = new google.maps.Marker({
-					position: { lat: userLat, lng: userLng },
-					map: map,
-					title: 'You are here!'
-				});
-			}, (error) => {
-				console.error('Error getting location: ', error);
-			});
+					// Add a marker for the user's location
+					const userMarker = new google.maps.Marker({
+						position: { lat: userLat, lng: userLng },
+						map: map,
+						title: 'You are here!'
+					});
+				},
+				(error) => {
+					console.error('Error getting location: ', error);
+				}
+			);
 		} else {
 			console.error('Geolocation is not supported by this browser.');
 		}
@@ -110,12 +113,16 @@
 
 <div class="container mx-auto p-4">
 	<!-- Map Section -->
-	<div bind:this={mapElement} class="mb-6 mt-4 h-[400px] w-full rounded-md bg-gray-300">
-	</div>
+	<div bind:this={mapElement} class="mb-6 mt-4 h-[400px] w-full rounded-md bg-gray-300"></div>
+</div>
+
+<div id="marker-content">
+	<!-- Info Section -->
+	{@html lastClickedContent}
 </div>
 
 <style>
-	/* Custom styles (optional) */
+	/* Custom styles (change) */
 	.navbar {
 		background-color: #4f46e5; /* Tailwind Indigo color */
 		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
