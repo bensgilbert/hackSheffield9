@@ -5,6 +5,8 @@
 	let mapElement;
 	let map;
 	let lastClickedContent = '';
+	// let text = "";
+	let marker;
 
 	onMount(() => {
 		loadGoogleMaps();
@@ -39,7 +41,7 @@
 		const { Loader } = pkg;
 
 		const loader = new Loader({
-			apiKey: 'REPLACE',
+			apiKey: 'AIzaSyDB8EtJ3vK8gwJgTgjeNyvDLkUOYnal1GM',
 			version: 'weekly',
 			libraries: ['places', 'maps']
 		});
@@ -124,7 +126,7 @@
 						<ul>
 						${markerData.items
 							.map(
-							(item, index) => `
+								(item, index) => `
 							<li>
 								<label>
 								${item[0]} (${item[1]} requested)
@@ -184,9 +186,17 @@
 	<div bind:this={mapElement} class="mb-6 mt-4 h-[400px] w-full rounded-md bg-gray-300"></div>
 </div>
 
-<div id="marker-content">
-	<!-- Info Section -->
-	{@html lastClickedContent}
+<div class="container mx-auto p-4">
+	<div class="container mx-auto mb-2 rounded-md bg-blue-600 p-4 text-white">OrderDetails</div>
+
+	<div class="container mx-auto mb-6 w-full rounded-md bg-gray-300 p-4">
+		<div id="text" class="m-auto">
+			<p>The Diamond</p>
+			<p>32 Leavygreave Rd</p>
+			<p>Sheffield</p>
+			<p>S3 7RD</p>
+		</div>
+	</div>
 </div>
 
 <style>
@@ -194,5 +204,9 @@
 	.navbar {
 		background-color: #4f46e5; /* Tailwind Indigo color */
 		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	}
+
+	#orderDetails {
+		background-color: #4f46e5;
 	}
 </style>

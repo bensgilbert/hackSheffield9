@@ -5,6 +5,7 @@
 	let mapElement;
 	let map;
 	let lastClickedContent = '';
+	// let text;
 
 	onMount(() => {
 		loadGoogleMaps();
@@ -185,6 +186,7 @@
 <div id="marker-content">
 	<!-- Info Section -->
 	{@html lastClickedContent}
+
 </div>
 
 <style>
