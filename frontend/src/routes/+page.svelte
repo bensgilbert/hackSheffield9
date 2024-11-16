@@ -8,6 +8,29 @@
 
 	onMount(() => {
 		loadGoogleMaps();
+
+		document.getElementById('serviceForm');
+		form.addEventListener('submit', (event) => {
+			event.preventDefault();
+
+			// Collect selected items
+			const selectedItems = [];
+			markerData.items.forEach((item, index) => {
+				const checkbox = form.querySelector(`input[name="item${index}"]`);
+				if (checkbox && checkbox.checked) {
+					selectedItems.push({
+						itemName: item[0],
+						quantity: item[1]
+					});
+				}
+			});
+
+			// Log the selected items for now or handle as needed
+			console.log('Selected Items:', selectedItems);
+
+			// Perform further actions (e.g., send data to a server)
+			alert('Thank you for offering to help!');
+		});
 	});
 
 	// Loading google maps to the page
@@ -35,12 +58,28 @@
 		// Key locations, will be the orders
 		const markers = [
 			{
+				username: 'superuser123',
+				message: 'Please I need stuff',
+				items: [
+					['bread', 2, false],
+					['bananas', 1, false],
+					['water', 4, false],
+					['loo roll', 3, false]
+				],
 				locationName: 'The Diamond',
 				lat: 53.38182330444414,
 				lng: -1.4816028478377632,
 				address: '32 Leavygreave Rd<br>Sheffield<br>S3 7RD'
 			},
 			{
+				username: 'superuser123',
+				message: 'Please I need stuff',
+				items: [
+					['bread', 2, false],
+					['bananas', 1, false],
+					['water', 4, false],
+					['loo roll', 3, false]
+				],
 				locationName: 'Sir Frederick Mappin Building',
 				lat: 53.38196206804772,
 				lng: -1.4788498911897958,
@@ -76,7 +115,34 @@
 
 			google.maps.event.addListener(marker, 'click', () => {
 				// Update the last clicked content with the marker's title and description
-				lastClickedContent = `<h3>${markerData.locationName}</h3><p>${markerData.address}</p>`;
+				lastClickedContent = `
+					<h3>${markerData.locationName}</h3>
+					<p>${markerData.address}</p>
+					<p><strong>Message:</strong> ${markerData.message}</p>
+					<form id="serviceForm">
+						<h4>Items Requested:</h4>
+						<ul>
+						${markerData.items
+							.map(
+								(item, index) => `
+							<li>
+								<label>
+								<input 
+									type="checkbox" 
+									name="item${index}" 
+									value="${item[0]}" 
+									data-quantity="${item[1]}" 
+									${item[2] ? 'checked' : ''}
+								>
+								${item[0]} (${item[1]})
+								</label>
+							</li>`
+							)
+							.join('')}
+						</ul>
+						<button type="submit">Submit</button>
+					</form>
+				`;
 			});
 
 			bounds.extend(new google.maps.LatLng(marker.lat, marker.lng));
