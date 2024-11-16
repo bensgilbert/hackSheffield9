@@ -38,384 +38,50 @@
 			}
 		];
 
+		const markerIcon = '/shopping-basket.png'
+
 		const mapOptions = {
 			center: { lat: 13.736717, lng: 100.523186 },
 			zoom: 12,
 			disableDefaultUI: true,
 			gestureHandling: 'greedy',
-			mapId: 'your-map-id',
-			styles: [
-    {
-        "featureType": "all",
-        "elementType": "all",
-        "stylers": [
-            {
-                "visibility": "on"
-            }
-        ]
-    },
-    {
-        "featureType": "all",
-        "elementType": "labels",
-        "stylers": [
-            {
-                "visibility": "off"
-            },
-            {
-                "saturation": "-100"
-            }
-        ]
-    },
-    {
-        "featureType": "all",
-        "elementType": "labels.text.fill",
-        "stylers": [
-            {
-                "saturation": 36
-            },
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 40
-            },
-            {
-                "visibility": "off"
-            }
-        ]
-    },
-    {
-        "featureType": "all",
-        "elementType": "labels.text.stroke",
-        "stylers": [
-            {
-                "visibility": "off"
-            },
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 16
-            }
-        ]
-    },
-    {
-        "featureType": "all",
-        "elementType": "labels.icon",
-        "stylers": [
-            {
-                "visibility": "off"
-            }
-        ]
-    },
-    {
-        "featureType": "administrative",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 20
-            }
-        ]
-    },
-    {
-        "featureType": "administrative",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 17
-            },
-            {
-                "weight": 1.2
-            }
-        ]
-    },
-    {
-        "featureType": "landscape",
-        "elementType": "geometry",
-        "stylers": [
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 20
-            }
-        ]
-    },
-    {
-        "featureType": "landscape",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#4d6059"
-            }
-        ]
-    },
-    {
-        "featureType": "landscape",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#4d6059"
-            }
-        ]
-    },
-    {
-        "featureType": "landscape.natural",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#4d6059"
-            }
-        ]
-    },
-    {
-        "featureType": "poi",
-        "elementType": "geometry",
-        "stylers": [
-            {
-                "lightness": 21
-            }
-        ]
-    },
-    {
-        "featureType": "poi",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#4d6059"
-            }
-        ]
-    },
-    {
-        "featureType": "poi",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#4d6059"
-            }
-        ]
-    },
-    {
-        "featureType": "road",
-        "elementType": "geometry",
-        "stylers": [
-            {
-                "visibility": "on"
-            },
-            {
-                "color": "#7f8d89"
-            }
-        ]
-    },
-    {
-        "featureType": "road",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#7f8d89"
-            }
-        ]
-    },
-    {
-        "featureType": "road.highway",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#7f8d89"
-            },
-            {
-                "lightness": 17
-            }
-        ]
-    },
-    {
-        "featureType": "road.highway",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#7f8d89"
-            },
-            {
-                "lightness": 29
-            },
-            {
-                "weight": 0.2
-            }
-        ]
-    },
-    {
-        "featureType": "road.arterial",
-        "elementType": "geometry",
-        "stylers": [
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 18
-            }
-        ]
-    },
-    {
-        "featureType": "road.arterial",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#7f8d89"
-            }
-        ]
-    },
-    {
-        "featureType": "road.arterial",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#7f8d89"
-            }
-        ]
-    },
-    {
-        "featureType": "road.local",
-        "elementType": "geometry",
-        "stylers": [
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 16
-            }
-        ]
-    },
-    {
-        "featureType": "road.local",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#7f8d89"
-            }
-        ]
-    },
-    {
-        "featureType": "road.local",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#7f8d89"
-            }
-        ]
-    },
-    {
-        "featureType": "transit",
-        "elementType": "geometry",
-        "stylers": [
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 19
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "all",
-        "stylers": [
-            {
-                "color": "#2b3638"
-            },
-            {
-                "visibility": "on"
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "geometry",
-        "stylers": [
-            {
-                "color": "#2b3638"
-            },
-            {
-                "lightness": 17
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#24282b"
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#24282b"
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "labels",
-        "stylers": [
-            {
-                "visibility": "off"
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "labels.text",
-        "stylers": [
-            {
-                "visibility": "off"
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "labels.text.fill",
-        "stylers": [
-            {
-                "visibility": "off"
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "labels.text.stroke",
-        "stylers": [
-            {
-                "visibility": "off"
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "labels.icon",
-        "stylers": [
-            {
-                "visibility": "off"
-            }
-        ]
-    }
-]}
+			mapId: 'your-map-id'
+		}
 
 		map = new google.maps.Map(mapElement, mapOptions);
 
+		const infoWindow = new google.maps.InfoWindow({
+			minWidth: 200,
+			maxWidth: 200
+		});
+
 		const marker = new google.maps.Marker({
 			position: { lat: markers[0]['lat'], lng: markers[0]['lng'] },
-			map: map
+			map: map,
+			icon: {
+				url: markerIcon,
+				scaledSize: new google.maps.Size(40, 40)
+			}
 		});
+		
+		function createInfoWindows() {
+			// Create content for the InfoWindow as a string
+			const infoWindowContent = `
+				<div class="marker-content">
+				<h3>${markers[0]['locationName']}</h3>
+				<address>
+					<p>${markers[0]['address']}</p>
+				<address>
+				</div>
+			`;
+
+			google.maps.event.addListener(marker, 'click', function() {
+				infoWindow.setContent(infoWindowContent);
+				infoWindow.open(map, marker);
+			});
+		}
+
+		createInfoWindows()
 
 		// Request user's location
 		if (navigator.geolocation) {
