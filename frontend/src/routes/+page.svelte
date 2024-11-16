@@ -13,7 +13,7 @@
 		const { Loader } = pkg;
 
 		const loader = new Loader({
-			apiKey: "cheeky-bastard",
+			apiKey: 'AIzaSyDB8EtJ3vK8gwJgTgjeNyvDLkUOYnal1GM',
 			version: 'weekly',
 			libraries: ['places', 'maps']
 		});
@@ -30,7 +30,7 @@
 		const google = window.google;
 		map = new google.maps.Map(mapElement, {
 			center: { lat: 13.736717, lng: 100.523186 },
-			zoom: 8,
+			zoom: 12,
 			disableDefaultUI: true,
 			gestureHandling: 'greedy',
 			mapId: 'your-map-id' // Replace or remove this
@@ -48,4 +48,16 @@
 	}
 </script>
 
-<div bind:this={mapElement} class="size-96" id="map"></div>
+<div class="container mx-auto p-4">
+	<!-- Map Section -->
+	<div bind:this={mapElement} class="mb-6 mt-4 h-[400px] w-full rounded-md bg-gray-300">
+	</div>
+</div>
+
+<style>
+	/* Custom styles (optional) */
+	.navbar {
+		background-color: #4f46e5; /* Tailwind Indigo color */
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	}
+</style>
