@@ -124,17 +124,19 @@
 						<ul>
 						${markerData.items
 							.map(
-								(item, index) => `
+							(item, index) => `
 							<li>
 								<label>
+								${item[0]} (${item[1]} requested)
 								<input 
-									type="checkbox" 
+									type="number" 
 									name="item${index}" 
-									value="${item[0]}" 
-									data-quantity="${item[1]}" 
-									${item[2] ? 'checked' : ''}
+									min="0" 
+									step="1" 
+									value="0" 
+									data-max="${item[1]}"
+									class="number-input"
 								>
-								${item[0]} (${item[1]})
 								</label>
 							</li>`
 							)
