@@ -52,10 +52,53 @@ def logout():
         )
     )
 
-# Change home.html to the home template we want and change the Auth0 links from localhost to what we actually want 
+
+# Checks if user in session - meaning logged in
+def isAuthorised():
+    if 'user' in session:
+        return True
+    else:
+        return False
+
+
+# Change home.html to the home template we want and change the Auth0 links from localhost to what we actually want
 @app.route("/")
 def home():
     return render_template("test.html", session=session.get('user'), pretty=json.dumps(session.get('user'), indent=4))
+
+@app.route("/user")
+def userProfile():
+    if isAuthorised():
+        # Get userEmail from the session to fetch user data from database
+        userEmail = session.get('user').get('userinfo').get('email')
+        return "get database data"
+    else:
+        return redirect(url_for("login"))
+
+@app.route("/requests")
+def requests():
+    if isAuthorised():
+        # get data from db into list
+        return "list of requests"
+    else:
+        return redirect(url_for("login"))
+
+@app.route("create-request")
+def createRequest():
+    if isAuthorised():
+        #add a new request to db
+        return "success message"
+    else:
+        return redirect(url_for("login"))
+
+@app.route("/fulfil-request")
+def fulfilRequest():
+    if isAuthorised():
+        # mark request fulfilled
+        return "success message"
+    else:
+        return redirect(url_for("login"))
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=env.get("PORT", 3000))
