@@ -13,6 +13,9 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session, sess
 from sqlalchemy import create_engine, null, select, update
 from models import Order, OrderItem, Account, engine
 from sqlalchemy.ext.declarative import declarative_base
+
+from flask_cors import CORS, cross_origin
+
 from datetime import datetime
 
 ENV_FILE = find_dotenv()
@@ -21,6 +24,8 @@ if ENV_FILE:
 
 app = Flask(__name__)
 app.secret_key = env.get("APP_SECRET_KEY")
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 oauth = OAuth(app)
 
@@ -36,18 +41,21 @@ oauth.register(
 )
 
 @app.route("/login")
+@cross_origin()
 def login():
     return oauth.auth0.authorize_redirect(
         redirect_uri=url_for("callback", _external=True)
     )
 
 @app.route("/callback", methods=["GET", "POST"])
+@cross_origin()
 def callback():
     token = oauth.auth0.authorize_access_token()
     session["user"] = token
     return redirect("/")
 
 @app.route("/logout")
+@cross_origin()
 def logout():
     session.clear()
     return redirect(
@@ -86,10 +94,12 @@ def isAuthorised():
 
 # Change home.html to the home template we want and change the Auth0 links from localhost to what we actually want
 @app.route("/")
+@cross_origin()
 def home():
     return render_template("test.html", session=session.get('user'), pretty=json.dumps(session.get('user'), indent=4))
 
 @app.route("/user")
+@cross_origin()
 def userProfile():
     if isAuthorised():
         # Get userEmail from the session to fetch user data from database
@@ -102,6 +112,7 @@ def userProfile():
 # Takes all orders from order table and stores in list
 # Outputted as JSON
 @app.route("/requests")
+@cross_origin()
 def requests():
     if isAuthorised():
         user_email = session.get('user').get('userinfo').get('email')
@@ -162,6 +173,7 @@ def requests():
         return redirect(url_for("login"))
 
 @app.route("/create-request", methods=["POST"])
+@cross_origin()
 def createRequest():
     if isAuthorised():
         data = request.get_json()
@@ -211,6 +223,7 @@ def createRequest():
         return redirect(url_for("login"))
 
 @app.route("/fulfil-request")
+@cross_origin()
 def fulfilRequest():
     if isAuthorised():
 
@@ -241,6 +254,7 @@ def fulfilRequest():
         return redirect(url_for("login"))
 
 @app.route("/completed-request")
+@cross_origin()
 def completeRequest():
 
     with Session(engine) as db_session:
