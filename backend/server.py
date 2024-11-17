@@ -4,12 +4,13 @@ from urllib.parse import quote_plus, urlencode
 
 from authlib.integrations.flask_client import OAuth
 from dotenv import find_dotenv, load_dotenv
-from flask import Flask, redirect, render_template, session, url_for
+from flask import Flask, redirect, render_template, session, request, url_for
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session, sessionmaker
 from sqlalchemy import create_engine, null, select, update
-from models import Order, Account, engine
+from models import Order, OrderItem, Account, engine
 from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
 
 ENV_FILE = find_dotenv()
 if ENV_FILE:
@@ -101,11 +102,52 @@ def requests():
     else:
         return redirect(url_for("login"))
 
-@app.route("/create-request")
+@app.route("/create-request", methods=["POST"])
 def createRequest():
     if isAuthorised():
-        #add a new request to db
-        return "success message"
+        data = request.get_json()
+
+        # Extract the order data
+        message = data.get("message")
+        # account_id = data.get("account_id")
+        lat = data.get("lat")
+        lng = data.get("lng")
+        address = data.get("address")
+        collection_time = data.get("collectionTime")
+        items = data.get("items")
+
+        userEmail = session.get('user').get('userinfo').get('email')
+        user = db_session.query(Account).filter_by(email=userEmail).first()
+
+        # Create the new Order
+        new_order = Order(
+            message=message,
+            account_id=user.id,
+            lat=lat,
+            lng=lng,
+            address=address,
+            collectionTime=collection_time,
+            fufullied=None  # Initially, order is not fulfilled
+        )
+
+        # Add the order to the session and commit
+        with Session() as db_session:
+            db_session.add(new_order)
+            db_session.commit()
+
+            # Add the items to the OrderItem table
+            for item in items:
+                order_item = OrderItem(
+                    order_id=new_order.id,
+                    name=item['name'],
+                    quantity=item['quantity']
+                )
+                db_session.add(order_item)
+            
+            db_session.commit()
+
+        # Redirect to the view request page with the new order's ID
+        return redirect(url_for("viewRequest", order_id=new_order.id))
     else:
         return redirect(url_for("login"))
 

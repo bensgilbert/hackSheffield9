@@ -23,23 +23,17 @@ class Order(Base):
     account_id: Mapped[int] = mapped_column(nullable=False)
     lat: Mapped[str] = mapped_column(nullable=False)
     lng: Mapped[str] = mapped_column(nullable=False)
+    address: Mapped[str] = mapped_column(nullable=False)
+    collectionTime: Mapped[int] = mapped_column(nullable=True)
     fufullied: Mapped[int] = mapped_column(nullable=True)
 
 
 class OrderItem(Base):
     __tablename__ = "order_item"
 
-    account_id: Mapped[int] = mapped_column(primary_key=True)
     order_id: Mapped[int] = mapped_column(primary_key=True)
-    item_id: Mapped[int] = mapped_column(nullable=False)
-    quantity: Mapped[int] = mapped_column(nullable=False)
-
-
-class Item(Base):
-    __tablename__ = "item"
-
-    item_id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(nullable=False)
+    quantity: Mapped[int] = mapped_column(nullable=False)
 
 
 Base.metadata.create_all(engine)
