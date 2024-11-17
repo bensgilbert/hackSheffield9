@@ -51,10 +51,9 @@
 				if (myOrders.length > 0 && myOrders[0].error) {
 				} else {
 					myOrders.forEach((order) => {
-						console.log('myOrders', order);
 						new Marker({
 							map,
-							position: { lat: parseFloat(order.latitude), lng: parseFloat(order.longitude) },
+							position: { lat: parseFloat(order.lat), lng: parseFloat(order.lng) },
 							icon: {
 								url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
 							}
@@ -64,10 +63,9 @@
 				if (unfulfilledOrders.length > 0 && unfulfilledOrders[0].error) {
 				} else {
 					unfulfilledOrders.forEach((order) => {
-						console.log('Unfulfilled', order);
 						new Marker({
 							map,
-							position: { lat: parseFloat(order.latitude), lng: parseFloat(order.longitude) },
+							position: { lat: parseFloat(order.lat), lng: parseFloat(order.lng) },
 							icon: {
 								url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
 							}
