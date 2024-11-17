@@ -10,6 +10,9 @@
 	let leftSidebar = $state(false);
 	let rightSidebar = $state(false);
 
+	let myOrders = $state([]);
+	let unfulfilledOrders = $state([]);
+
 	onMount(async () => {
 		const pkg = await import('@googlemaps/js-api-loader');
 		const { Loader } = pkg;
@@ -44,7 +47,31 @@
 		})
 			.then((response) => response.json())
 			.then((orders) => {
-				console.log(orders);
+				[myOrders, unfulfilledOrders] = orders;
+				if (myOrders.length > 0 && myOrders[0].error) {
+				} else {
+					myOrders.forEach((order) => {
+						new Marker({
+							map,
+							position: { lat: order.latitude, lng: order.longitude },
+							icon: {
+								url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png"
+							}
+						});
+					});
+				}
+				if (unfulfilledOrders.length > 0 && unfulfilledOrders[0].error) {
+				} else {
+					unfulfilledOrders.forEach((order) => {
+						new Marker({
+							map,
+							position: { lat: order.latitude, lng: order.longitude },
+							icon: {
+								url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+							}
+						});
+					});
+				}
 			})
 			.catch(() => {
 				window.location = 'http://localhost:3000/login';
