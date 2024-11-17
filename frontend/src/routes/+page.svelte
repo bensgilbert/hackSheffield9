@@ -51,12 +51,12 @@
 				if (myOrders.length > 0 && myOrders[0].error) {
 				} else {
 					myOrders.forEach((order) => {
-						console.log("myOrders", order);
+						console.log('myOrders', order);
 						new Marker({
 							map,
-							position: { lat: order.latitude, lng: order.longitude },
+							position: { lat: parseFloat(order.latitude), lng: parseFloat(order.longitude) },
 							icon: {
-								url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png"
+								url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
 							}
 						});
 					});
@@ -64,12 +64,12 @@
 				if (unfulfilledOrders.length > 0 && unfulfilledOrders[0].error) {
 				} else {
 					unfulfilledOrders.forEach((order) => {
-						console.log("Unfulfilled", order);
+						console.log('Unfulfilled', order);
 						new Marker({
 							map,
-							position: { lat: order.latitude, lng: order.longitude },
+							position: { lat: parseFloat(order.latitude), lng: parseFloat(order.longitude) },
 							icon: {
-								url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+								url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
 							}
 						});
 					});

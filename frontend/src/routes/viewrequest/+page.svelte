@@ -132,14 +132,14 @@
 	}
 </script>
 
-<div class="container mx-auto p-4 relative">
+<div class="container relative mx-auto p-4">
 	<!-- Search Bar -->
-	<div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 w-4/5">
+	<div class="absolute left-1/2 top-4 z-10 w-4/5 -translate-x-1/2 transform">
 		<input
 			bind:this={searchInputElement}
 			type="text"
 			placeholder="Search for a location"
-			class="w-full p-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+			class="w-full rounded-md border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
 		/>
 	</div>
 
@@ -148,14 +148,12 @@
 		<div bind:this={mapElement} class="h-[400px] w-full rounded-md bg-gray-300"></div>
 		<!-- Fixed Pin -->
 		<div
-			class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20"
+			class="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 transform"
 			style="pointer-events: none"
 		>
-			<img src="/location-icon.png" alt="Map Pin" class="w-5 h-5" />
+			<img src="/location-icon.png" alt="Map Pin" class="h-5 w-5" />
 		</div>
 	</div>
-
-	
 
 	<!-- Form Section -->
 	<div class="mt-4">
@@ -168,7 +166,7 @@
 					id="time"
 					bind:value={time}
 					required
-					class="mt-1 w-full p-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+					class="mt-1 w-full rounded-md border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
 				/>
 			</div>
 
@@ -176,13 +174,13 @@
 			<div>
 				<label for="items" class="block text-sm font-medium text-gray-700">Items</label>
 				{#each items as { name, quantity }, i}
-					<div class="flex items-center space-x-2 mt-2">
+					<div class="mt-2 flex items-center space-x-2">
 						<input
 							type="text"
 							placeholder="Item name"
 							bind:value={items[i].name}
 							required
-							class="w-2/3 p-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+							class="w-2/3 rounded-md border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
 						/>
 						<input
 							type="number"
@@ -190,7 +188,7 @@
 							min="1"
 							bind:value={items[i].quantity}
 							required
-							class="w-1/3 p-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+							class="w-1/3 rounded-md border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
 						/>
 						<button
 							type="button"
@@ -201,11 +199,7 @@
 						</button>
 					</div>
 				{/each}
-				<button
-					type="button"
-					on:click={addItem}
-					class="mt-2 text-indigo-500 hover:text-indigo-700"
-				>
+				<button type="button" on:click={addItem} class="mt-2 text-indigo-500 hover:text-indigo-700">
 					Add Item
 				</button>
 			</div>
@@ -213,7 +207,7 @@
 			<!-- Submit Button -->
 			<button
 				type="submit"
-				class="mt-4 w-full py-2 px-4 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700"
+				class="mt-4 w-full rounded-md bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700"
 			>
 				Submit Request
 			</button>
