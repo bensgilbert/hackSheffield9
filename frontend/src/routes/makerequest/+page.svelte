@@ -1,5 +1,5 @@
 <script>
-	import { myStyle } from '$lib/javascript/map';
+	import { style } from '$lib/javascript/map';
 	import { onMount } from 'svelte';
 
 	let mapElement;
@@ -39,7 +39,7 @@
 			zoom: 12,
 			disableDefaultUI: true,
 			gestureHandling: 'greedy',
-			styles: myStyle
+			styles: style
 		};
 
 		map = new google.maps.Map(mapElement, mapOptions);
