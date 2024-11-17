@@ -23,7 +23,7 @@ class Order(Base):
     account_id: Mapped[int] = mapped_column(nullable=False)
     lat: Mapped[str] = mapped_column(nullable=False)
     lng: Mapped[str] = mapped_column(nullable=False)
-    fufullied: Mapped[int] = mapped_column(nullable=True)
+    fulfilled: Mapped[int] = mapped_column(nullable=True)
 
 
 class OrderItem(Base):

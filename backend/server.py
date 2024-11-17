@@ -2,9 +2,12 @@ import json
 from os import environ as env
 from urllib.parse import quote_plus, urlencode
 
+from sqlalchemy.orm import Session
 from authlib.integrations.flask_client import OAuth
 from dotenv import find_dotenv, load_dotenv
-from flask import Flask, redirect, render_template, session, url_for
+from flask import Flask, redirect, render_template, session, url_for, jsonify
+
+from models import Order, engine
 
 ENV_FILE = find_dotenv()
 if ENV_FILE:
@@ -70,20 +73,43 @@ def home():
 def userProfile():
     if isAuthorised():
         # Get userEmail from the session to fetch user data from database
-        userEmail = session.get('user').get('userinfo').get('email')
+        userEmail = session.get('user').get('userinfo').get('user')
         return "get database data"
     else:
         return redirect(url_for("login"))
 
+# Takes all orders from order table and stores in list
+# Outputted as JSON
 @app.route("/requests")
 def requests():
     if isAuthorised():
-        # get data from db into list
-        return "list of requests"
+        with Session(engine) as db_session:
+            # Query inside the session context
+            orders = db_session.query(Order).all()
+
+            # Check if orders are retrieved
+            if not orders:
+                print("No orders found!")
+
+            # Prepare the list of orders
+            orderList = [
+                {
+                    "id": order.id,
+                    "message": order.message,
+                    "account_id": order.account_id,
+                    "lat": order.lat,
+                    "lng": order.lng,
+                    "fulfilled": order.fulfilled,
+                }
+                for order in orders
+            ]
+
+            return json.dumps(orderList, sort_keys=False)
     else:
         return redirect(url_for("login"))
 
-@app.route("create-request")
+
+@app.route("/create-request")
 def createRequest():
     if isAuthorised():
         #add a new request to db
