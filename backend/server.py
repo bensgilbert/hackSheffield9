@@ -5,13 +5,18 @@ from urllib.parse import quote_plus, urlencode
 from sqlalchemy.orm import Session
 from authlib.integrations.flask_client import OAuth
 from dotenv import find_dotenv, load_dotenv
+
 from flask import Flask, redirect, render_template, session, request, url_for, jsonify
 from flask_cors import CORS
+
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session, sessionmaker
 from sqlalchemy import create_engine, null, select, update
 from models import Order, OrderItem, Account, engine
 from sqlalchemy.ext.declarative import declarative_base
+
+from flask_cors import CORS, cross_origin
+
 from datetime import datetime
 
 ENV_FILE = find_dotenv()
@@ -19,8 +24,9 @@ if ENV_FILE:
     load_dotenv(ENV_FILE)
 
 app = Flask(__name__)
-CORS(app)
 app.secret_key = env.get("APP_SECRET_KEY")
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 oauth = OAuth(app)
 
@@ -36,18 +42,21 @@ oauth.register(
 )
 
 @app.route("/login")
+@cross_origin()
 def login():
     return oauth.auth0.authorize_redirect(
         redirect_uri=url_for("callback", _external=True)
     )
 
 @app.route("/callback", methods=["GET", "POST"])
+@cross_origin()
 def callback():
     token = oauth.auth0.authorize_access_token()
     session["user"] = token
     return redirect("/")
 
 @app.route("/logout")
+@cross_origin()
 def logout():
     session.clear()
     return redirect(
@@ -86,10 +95,12 @@ def isAuthorised():
 
 # Change home.html to the home template we want and change the Auth0 links from localhost to what we actually want
 @app.route("/")
+@cross_origin()
 def home():
     return render_template("test.html", session=session.get('user'), pretty=json.dumps(session.get('user'), indent=4))
 
 @app.route("/user")
+@cross_origin()
 def userProfile():
     if isAuthorised():
         # Get userEmail from the session to fetch user data from database
@@ -102,34 +113,68 @@ def userProfile():
 # Takes all orders from order table and stores in list
 # Outputted as JSON
 @app.route("/requests")
+@cross_origin()
 def requests():
     if isAuthorised():
+        user_email = session.get('user').get('userinfo').get('email')
         with Session(engine) as db_session:
-            # Query inside the session context
-            orders = db_session.query(Order).all()
+            user_id = db_session.query(Account).filter(Account.email == user_email).first().id
+            # Query to find orders which are not being fulfilled
+            unfulfilled_orders = db_session.query(Order).filter_by(fulfilled=None).all()
+            # Query to find orders which are being fulfilled by the user logged in
+            my_orders = db_session.query(Order).filter_by(fulfilled=user_id).all()
 
             # Check if orders are retrieved
-            if not orders:
-                print("No orders found!")
+            # If no data after retrievel will make error field
+            # MUST CHECK FOR ERROR WHEN USING THE JSON
+            if not unfulfilled_orders:
+                unfulfilled_orders_list = [
+                    {
+                        "error": "No unfulfilled orders :)"
+                    }
+                ]
+            else:
+                # Prepare the list of orders
+                unfulfilled_orders_list = [
+                    {
+                        "id": order.id,
+                        "message": order.message,
+                        "account_id": order.account_id,
+                        "lat": order.lat,
+                        "lng": order.lng,
+                        "fulfilled": order.fulfilled,
+                    }
+                    for order in unfulfilled_orders
+                ]
 
-            # Prepare the list of orders
-            orderList = [
-                {
-                    "id": order.id,
-                    "message": order.message,
-                    "account_id": order.account_id,
-                    "lat": order.lat,
-                    "lng": order.lng,
-                    "fulfilled": order.fulfilled,
-                }
-                for order in orders
-            ]
+            if not my_orders:
+                my_orders_list = [
+                    {
+                        "error": "You have not chosen any orders to fulfil :("
+                    }
+                ]
+            else:
+                my_orders_list = [
+                    {
+                        "id": order.id,
+                        "message": order.message,
+                        "account_id": order.account_id,
+                        "lat": order.lat,
+                        "lng": order.lng,
+                        "fulfilled": order.fulfilled,
+                    }
+                    for order in my_orders
+                ]
 
-            return json.dumps(orderList, sort_keys=False)
+            combination = [my_orders_list,unfulfilled_orders_list]
+
+
+            return json.dumps(combination, sort_keys=False)
     else:
         return redirect(url_for("login"))
 
 @app.route("/create-request", methods=["POST"])
+@cross_origin()
 def createRequest():
     print("POST request received")
     if isAuthorised():
@@ -182,6 +227,7 @@ def createRequest():
         return redirect(url_for("login"))
 
 @app.route("/fulfil-request")
+@cross_origin()
 def fulfilRequest():
     if isAuthorised():
 
@@ -189,7 +235,7 @@ def fulfilRequest():
             pass
 
         #ORDER HERE IS FOR TESTING PURPOSES REPLACE WITH ORDERID OF ORDER TO BE FURFILLED
-        new_order = Order(message='pending', account_id=5, lat="aa", lng="aaa", fufullied=0)  
+        new_order = Order(message='pending', account_id=5, lat="aa", lng="aaa", fufullied=0, collectionTime=1)  
         db_session.add(new_order)
         db_session.commit()
         
@@ -202,12 +248,38 @@ def fulfilRequest():
         #Replace filterbyid field with the order to be furfilled 
         order = db_session.query(Order).filter_by(id=new_order.id).first()
         order.fulfilled = user.id
+
+        thing = order.fulfilled 
         
         db_session.commit()
         db_session.close()
-        return "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        return str(thing)
     else:
         return redirect(url_for("login"))
+
+@app.route("/completed-request")
+@cross_origin()
+def completeRequest():
+
+    with Session(engine) as db_session:
+        pass
+
+    userEmail = session.get('user').get('userinfo').get('email')
+    user = db_session.query(Account).filter_by(email=userEmail).first()
+
+    #ORDER HERE IS FOR TESTING PURPOSES REPLACE WITH ORDERID OF ORDER TO BE FURFILLED
+    new_order = Order(message='pending', account_id=5, lat="aa", lng="aaa", fufullied=user.id, collectionTime=1)  
+    db_session.add(new_order)
+    db_session.commit()
+
+    order_to_delete = db_session.query(Order).filter_by(id=new_order.id).first()
+    db_session.delete(order_to_delete)
+    db_session.commit()
+    db_session.close()
+
+    return "ORDER DELETED"
+
+
 
 
 if __name__ == "__main__":

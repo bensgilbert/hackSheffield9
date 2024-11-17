@@ -24,9 +24,8 @@ class Order(Base):
     lat: Mapped[str] = mapped_column(nullable=False)
     lng: Mapped[str] = mapped_column(nullable=False)
     address: Mapped[str] = mapped_column(nullable=False)
-    collectionTime: Mapped[int] = mapped_column(nullable=True)
-    fufullied: Mapped[int] = mapped_column(nullable=True)
     collectionTime: Mapped[str] = mapped_column(nullable=False)
+    fulfilled: Mapped[int] = mapped_column(nullable=True)
 
 
 class OrderItem(Base):

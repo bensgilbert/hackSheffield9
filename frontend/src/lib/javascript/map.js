@@ -1,4 +1,4 @@
-export const myStyle = [
+export const style = [
 	{
 		featureType: 'all',
 		elementType: 'all',
