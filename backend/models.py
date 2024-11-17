@@ -31,8 +31,7 @@ class Order(Base):
 class OrderItem(Base):
     __tablename__ = "order_item"
 
-    item_id: Mapped[int] = mapped_column(primary_key=True)
-    order_id: Mapped[int] = mapped_column(primary_key=False)
+    order_id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(nullable=False)
     quantity: Mapped[int] = mapped_column(nullable=False)
 

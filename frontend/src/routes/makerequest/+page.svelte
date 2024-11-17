@@ -8,22 +8,8 @@
 	let pinLatLng = { lat: 13.736717, lng: 100.523186 };
 	let isCentering = false;
 
-	onMount(async () => {
+	onMount(() => {
 		loadGoogleMaps();
-
-		try {
-			const response = await fetch("http://localhost:3000/check-order");
-			if (response.ok) {
-				const data = await response.json();
-				if (data.exists) {
-					window.location.href = "/viewrequest"; // Redirect to viewrequest
-				}
-			} else {
-				console.error("Failed to check order existence");
-			}
-		} catch (error) {
-			console.error("Error checking order:", error);
-		}
 	});
 
 	// Loading Google Maps and Places Autocomplete API
@@ -142,7 +128,7 @@
 			});
 
 			if (response.ok) {
-				window.location.href = '/viewrequest';
+				alert('Request submitted successfully!');
 				// Optionally, clear the form or redirect
 			} else {
 				console.error('Failed to submit request');

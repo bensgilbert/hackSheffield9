@@ -198,70 +198,6 @@ def requests():
     else:
         return redirect(url_for("login"))
 
-
-# Takes all orders from order table and stores in list
-# Outputted as JSON
-@app.route("/deliver-personal-order")
-@cross_origin()
-def deliverPersonalOrder():
-    if isAuthorised():
-        user_email = session.get('user').get('userinfo').get('email')
-        with Session(engine) as db_session:
-            user = db_session.query(Account).filter(Account.email == user_email).first()
-            if not user:
-                return jsonify({"error": "User not found"}), 404  # Return an error if the user is not found
-
-            user_id = user.id
-            my_orders = db_session.query(Order).filter_by(account_id=user_id).all()
-
-            if not my_orders:
-                my_orders_list = [{"error": "You have no orders :("}]
-            else:
-                my_orders_list = []
-                for order in my_orders:
-                    # Query items for the current order
-                    items = db_session.query(OrderItem).filter_by(order_id=order.id).all()
-                    item_list = [
-                        {"name": item.name, "quantity": item.quantity} for item in items
-                    ]
-                    my_orders_list.append({
-                        "id": order.id,
-                        "message": order.message,
-                        "account_id": order.account_id,
-                        "lat": order.lat,
-                        "lng": order.lng,
-                        "address": order.address,
-                        "collectionTime": order.collectionTime,
-                        "items": item_list,
-                        "fulfilled": order.fulfilled,
-                    })
-            
-            print("Orders sent to frontend:", my_orders_list)  # Debug output to confirm data
-            return json.dumps(my_orders_list, sort_keys=False)
-
-    else:
-        print("Unauthorized access attempted.")
-        return redirect(url_for("login"))
-
-
-@app.route("/check-order")
-@cross_origin()
-def checkOrder():
-    if isAuthorised():
-        user_email = session.get('user').get('userinfo').get('email')
-        with Session(engine) as db_session:
-            user = db_session.query(Account).filter(Account.email == user_email).first()
-            if not user:
-                return jsonify({"exists": False}), 404
-            
-            # Check if the user has an order
-            has_order = db_session.query(Order).filter_by(account_id=user.id).first() is not None
-            return jsonify({"exists": has_order}), 200
-
-    else:
-        return jsonify({"error": "Unauthorized"}), 401
-    
-
 @app.route("/create-request", methods=["POST"])
 @cross_origin()
 def createRequest():
@@ -346,26 +282,24 @@ def fulfilRequest():
 @app.route("/completed-request")
 @cross_origin()
 def completeRequest():
+
     with Session(engine) as db_session:
         pass
 
     userEmail = session.get('user').get('userinfo').get('email')
     user = db_session.query(Account).filter_by(email=userEmail).first()
 
-    new_order = db_session.query(Order).filter_by(account_id=user.id).first()
-    if new_order:
-        items = db_session.query(OrderItem).filter_by(order_id=new_order.id).all()
-        for item in items:
-            db_session.delete(item)
-            db_session.commit()
-        db_session.delete(new_order)
-        db_session.commit()
-        db_session.close()
-        return "Successful"
-    else:
-        print(f"Order with id {user.id} not found")
-        return jsonify({"error": "Order not found"}), 404
+    #ORDER HERE IS FOR TESTING PURPOSES REPLACE WITH ORDERID OF ORDER TO BE FURFILLED
+    new_order = Order(message='pending', account_id=5, lat="aa", lng="aaa", fufullied=user.id, collectionTime=1)  
+    db_session.add(new_order)
+    db_session.commit()
 
+    order_to_delete = db_session.query(Order).filter_by(id=new_order.id).first()
+    db_session.delete(order_to_delete)
+    db_session.commit()
+    db_session.close()
+
+    return "ORDER DELETED"
 
 
 import os.path
@@ -404,7 +338,6 @@ def get_file(filename):  # pragma: no cover
 def test():
     content = get_file(os.path.join(root_dir(), "static", "index.html"))
     return Response(content, mimetype="text/html")
-
 
 @app.route('/<path:path>')
 def get_resource(path):  # pragma: no cover
