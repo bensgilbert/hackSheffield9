@@ -103,18 +103,23 @@ def userProfile():
 @app.route("/requests")
 def requests():
     if isAuthorised():
-        user_email = session.get('user').get('userinfo').get('user').get('email')
+        user_email = session.get('user').get('userinfo').get('email')
         with Session(engine) as db_session:
             user_id = db_session.query(Account).filter(Account.email == user_email).first().id
             # Query to find orders which are not being fulfilled
-            unfulfilled_orders = db_session.query(Order).filter(Order.fulfilled.is_(None),
-                                                                Order.fulfilled.is_(""))
+            unfulfilled_orders = db_session.query(Order).filter_by(fulfilled=None).all()
             # Query to find orders which are being fulfilled by the user logged in
-            my_orders = db_session.query(Order).filter(Order.fulfilled.is_(user_id))
+            my_orders = db_session.query(Order).filter_by(fulfilled=user_id).all()
 
             # Check if orders are retrieved
+            # If no data after retrievel will make error field
+            # MUST CHECK FOR ERROR WHEN USING THE JSON
             if not unfulfilled_orders:
-                unfulfilled_orders_list = "No unfulfilled orders :)"
+                unfulfilled_orders_list = [
+                    {
+                        "error": "No unfulfilled orders :)"
+                    }
+                ]
             else:
                 # Prepare the list of orders
                 unfulfilled_orders_list = [
@@ -130,7 +135,11 @@ def requests():
                 ]
 
             if not my_orders:
-                my_orders_list = "You have not chosen any orders to fulfil :("
+                my_orders_list = [
+                    {
+                        "error": "You have not chosen any orders to fulfil :("
+                    }
+                ]
             else:
                 my_orders_list = [
                     {
@@ -142,10 +151,9 @@ def requests():
                         "fulfilled": order.fulfilled,
                     }
                     for order in my_orders
-
                 ]
 
-            combination = [my_orders_list, unfulfilled_orders_list]
+            combination = [my_orders_list,unfulfilled_orders_list]
 
 
             return json.dumps(combination, sort_keys=False)

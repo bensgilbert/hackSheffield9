@@ -23,8 +23,7 @@ class Order(Base):
     account_id: Mapped[int] = mapped_column(nullable=False)
     lat: Mapped[str] = mapped_column(nullable=False)
     lng: Mapped[str] = mapped_column(nullable=False)
-
-    fufullied: Mapped[int] = mapped_column(nullable=True)
+    fulfilled: Mapped[int] = mapped_column(nullable=True)
     collectionTime: Mapped[int] = mapped_column(nullable=False)
 
 
@@ -33,7 +32,7 @@ class OrderItem(Base):
 
     account_id: Mapped[int] = mapped_column(primary_key=True)
     order_id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[Str] = mapped_column(nullable=False)
+    name: Mapped[str] = mapped_column(nullable=False)
     quantity: Mapped[int] = mapped_column(nullable=False)
 
 
