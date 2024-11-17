@@ -94,12 +94,6 @@ def isAuthorised():
         return False
 
 
-# Change home.html to the home template we want and change the Auth0 links from localhost to what we actually want
-@app.route("/")
-@cross_origin()
-def home():
-    return render_template("index.html", session=session.get('user'), pretty=json.dumps(session.get('user'), indent=4))
-
 @app.route("/user")
 @cross_origin()
 def userProfile():
@@ -190,22 +184,25 @@ def createRequest():
         collection_time = data.get("collectionTime")
         items = data.get("items")
 
-        userEmail = session.get('user').get('userinfo').get('email')
-        user = db_session.query(Account).filter_by(email=userEmail).first()
-
-        # Create the new Order
-        new_order = Order(
-            message=message,
-            account_id=user.id,
-            lat=lat,
-            lng=lng,
-            address=address,
-            collectionTime=collection_time,
-            fufullied=None  # Initially, order is not fulfilled
-        )
-
         # Add the order to the session and commit
         with Session(engine) as db_session:
+            pass 
+
+            userEmail = session.get('user').get('userinfo').get('email')
+            user = db_session.query(Account).filter_by(email=userEmail).first()
+
+            # Create the new Order
+            new_order = Order(
+                message=message,
+                account_id=user.id,
+                lat=lat,
+                lng=lng,
+                address=address,
+                collectionTime=collection_time,
+                fulfilled=None  # Initially, order is not fulfilled
+            )
+
+        
             db_session.add(new_order)
             db_session.commit()
 
@@ -217,8 +214,8 @@ def createRequest():
                     quantity=item['quantity']
                 )
                 db_session.add(order_item)
-            
-            db_session.commit()
+                db_session.commit()
+            db_session.close()
 
         # Redirect to the view request page with the new order's ID
         # return redirect(url_for("viewRequest", order_id=new_order.id))
@@ -288,6 +285,10 @@ def root_dir():  # pragma: no cover
 
 
 def get_file(filename):  # pragma: no cover
+    if filename == "/":
+        filename = "index.html"
+    
+    print("FILENAME", filename)
     try:
         src = os.path.join(root_dir(), filename)
         # Figure out how flask returns static files
@@ -310,15 +311,20 @@ def get_file(filename):  # pragma: no cover
     except IOError as exc:
         return str(exc)
 
+@app.route('/')
+def test():
+    content = get_file(os.path.join(root_dir(), "static", "index.html"))
+    return Response(content, mimetype="text/html")
+
 @app.route('/<path:path>')
 def get_resource(path):  # pragma: no cover
-    print(path)
     mimetypes = {
         ".css": "text/css",
         ".html": "text/html",
         ".js": "application/javascript",
         ".png": "image/png"
     }
+    print("OMFG", path)
     complete_path = os.path.join(root_dir(), "static", path)
     ext = os.path.splitext(path)[1]
     mimetype = mimetypes.get(ext, "text/html")

@@ -121,7 +121,7 @@
 		};
 
 		try {
-			const response = await fetch('http://127.0.0.1:3000/create-request', {
+			const response = await fetch('/create-request', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(requestData)
