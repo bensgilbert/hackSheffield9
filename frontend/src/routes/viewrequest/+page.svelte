@@ -6,8 +6,7 @@
 	let map;
 	let order = {
 		username: 'superuser123',
-		startTime: '2024-11-16 08:00',
-		endTime: '2024-11-16 12:00',
+		collectionTime: '0800',
 		items: [
 			['bread', 2],
 			['bananas', 1],
@@ -16,11 +15,52 @@
 		],
 		lat: 53.38182330444414,
 		lng: -1.4816028478377632,
+		message: 'hello',
+		address: 'blah blah blah',
 		fulfilled: 'user123' // or null if not fulfilled
 	};
 
-	onMount(() => {
+	onMount(async () => {
 		loadGoogleMaps();
+
+		try {
+			const response = await fetch('http://localhost:3000/check-order');
+			if (response.ok) {
+				const data = await response.json();
+				if (!data.exists) {
+					window.location.href = '/makerequest'; // Redirect to makerequest
+				}
+			} else {
+				console.error('Failed to check order existence');
+			}
+		} catch (error) {
+			console.error('Error checking order:', error);
+		}
+
+		fetch('http://localhost:3000/deliver-personal-order', {
+			redirect: 'error'
+		})
+			.then((response) => {
+				if (!response.ok) {
+					console.error('Error: ', response.status);
+					throw new Error('Failed to fetch orders');
+				}
+				return response.json(); // Parse response as JSON
+			})
+			.then((orders) => {
+				console.log('Orders:', orders); // Add logging here to inspect the response
+
+				if (orders.length > 0 && orders[0].error) {
+					console.error(orders[0].error);
+				} else {
+					order = orders[0]; // Set the order if it exists
+					console.log('First order set:', order);
+				}
+			})
+			.catch((error) => {
+				console.error('Request failed: ', error);
+				window.location = 'http://localhost:3000/login'; // Redirect to login if fetch fails
+			});
 	});
 
 	// Loading Google Maps and Places Autocomplete API
@@ -77,17 +117,53 @@
 	<!-- Order Details Section -->
 	<div class="mt-4">
 		<h3><b>Your Order</b></h3>
-		<p><strong>Order by:</strong> {order.username}</p>
-		<p><strong>Start Time:</strong> {order.startTime}</p>
-		<p><strong>End Time:</strong> {order.endTime}</p>
-		<p><strong>Location:</strong> {order.lat}, {order.lng}</p>
+		<p><strong>Collection Time:</strong> {order.collectionTime}</p>
+		<p><strong>Address:</strong> {order.address}</p>
+		<p><strong>Message:</strong> {order.message}</p>
 		<p><strong>Fulfilled by:</strong> {order.fulfilled || 'Not fulfilled yet'}</p>
 
 		<h4 class="mt-4"><b>Items:</b></h4>
 		<ul>
-			{#each order.items as [item, quantity]}
-				<li>{item} - Quantity: {quantity}</li>
+			{#each order.items as item}
+				<li>{item.name} - Quantity: {item.quantity}</li>
 			{/each}
 		</ul>
+
+		<!-- Cancel Button -->
+		<div class="mt-6">
+			<button
+				on:click={async () => {
+					try {
+						// Make a GET request to /completed-request
+						const response = await fetch('http://localhost:3000/completed-request', {
+							method: 'GET',
+							credentials: 'include' // Include cookies for session-based authentication
+						});
+
+						if (response.ok) {
+							console.log('Request completed successfully.');
+							// Redirect to /makerequest after successful completion
+							window.location.href = '/makerequest';
+						} else {
+							console.error('Failed to complete request:', response.statusText);
+							alert('Failed to complete the request. Please try again.');
+						}
+					} catch (error) {
+						console.error('Error making request to /completed-request:', error);
+						alert('An error occurred. Please try again.');
+					}
+				}}
+				class="w-full rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+			>
+				Cancel
+			</button>
+		</div>
 	</div>
 </div>
+
+<style>
+	.navbar {
+		background-color: #4f46e5;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	}
+</style>
