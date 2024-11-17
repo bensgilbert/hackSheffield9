@@ -117,7 +117,7 @@ def fulfilRequest():
             pass
 
         #ORDER HERE IS FOR TESTING PURPOSES REPLACE WITH ORDERID OF ORDER TO BE FURFILLED
-        new_order = Order(message='pending', account_id=5, lat="aa", lng="aaa", fufullied=0)  
+        new_order = Order(message='pending', account_id=5, lat="aa", lng="aaa", fufullied=0, collectionTime=1)  
         db_session.add(new_order)
         db_session.commit()
         
@@ -130,12 +130,37 @@ def fulfilRequest():
         #Replace filterbyid field with the order to be furfilled 
         order = db_session.query(Order).filter_by(id=new_order.id).first()
         order.fulfilled = user.id
+
+        thing = order.fulfilled 
         
         db_session.commit()
         db_session.close()
-        return "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        return str(thing)
     else:
         return redirect(url_for("login"))
+
+@app.route("/completed-request")
+def completeRequest():
+
+    with Session(engine) as db_session:
+        pass
+
+    userEmail = session.get('user').get('userinfo').get('email')
+    user = db_session.query(Account).filter_by(email=userEmail).first()
+
+    #ORDER HERE IS FOR TESTING PURPOSES REPLACE WITH ORDERID OF ORDER TO BE FURFILLED
+    new_order = Order(message='pending', account_id=5, lat="aa", lng="aaa", fufullied=user.id, collectionTime=1)  
+    db_session.add(new_order)
+    db_session.commit()
+
+    order_to_delete = db_session.query(Order).filter_by(id=new_order.id).first()
+    db_session.delete(order_to_delete)
+    db_session.commit()
+    db_session.close()
+
+    return "ORDER DELETED"
+
+
 
 
 if __name__ == "__main__":

@@ -32,7 +32,7 @@ class OrderItem(Base):
 
     account_id: Mapped[int] = mapped_column(primary_key=True)
     order_id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[Str] = mapped_column(nullable=False)
+    name: Mapped[str] = mapped_column(nullable=False)
     quantity: Mapped[int] = mapped_column(nullable=False)
 
 
