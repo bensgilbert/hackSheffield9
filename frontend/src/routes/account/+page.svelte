@@ -1,3 +1,22 @@
+<script>
+	import { onMount } from 'svelte';
+
+	let accountDetail = $state([]);
+
+	onMount(async () => {
+		fetch('http://localhost:3000/account', {
+			redirect: 'error'
+		})
+			.then((response) => response.json())
+			.then((account) => {
+				accountDetail = account;
+			})
+			.catch(() => {
+				window.location = 'http://localhost:3000/login';
+			});
+	});
+</script>
+
 <div class="container mx-auto p-4">
 	<h1 class="text-5xl">Account</h1>
 	<form action="" class="my-8 grid gap-8 md:grid-cols-2">
@@ -29,23 +48,3 @@
 		</div>
 	</form>
 </div>
-
-<script>
-	import {onMount} from "svelte";
-
-	let accountDetail = $state([])
-
-	onMount(async () => {
-
-		fetch('http://localhost:3000/account', {
-			redirect: 'error'
-		})
-			.then((response) => response.json())
-			.then((account) => {
-				accountDetail = account;
-			})
-			.catch(() => {
-				window.location = 'http://localhost:3000/login';
-			});
-	});
-</script>

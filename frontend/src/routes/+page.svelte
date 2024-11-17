@@ -61,6 +61,7 @@
 			.then((response) => response.json())
 			.then((orders) => {
 				[myOrders, unfulfilledOrders] = orders;
+				console.log([myOrders, unfulfilledOrders]);
 				if (myOrders.length > 0 && myOrders[0].error) {
 				} else {
 					myOrders.forEach((order) => {
@@ -85,7 +86,7 @@
 						});
 						marker.addListener('click', () => {
 							console.log(order);
-							
+
 							selectedOrder = order;
 							leftSidebar = true;
 						});
@@ -109,6 +110,7 @@
 				}
 			})
 			.catch((reason) => {
+				console.error(reason);
 				window.location = 'http://localhost:3000/login';
 			});
 	});
@@ -123,19 +125,57 @@
 			class="h-full w-80 space-y-8 text-nowrap bg-white p-4 shadow"
 		>
 			<div class="space-y-2 leading-none">
-				<h1 class="text-xl font-bold">Order #1234</h1>
+				<div class="flex items-center justify-between">
+					<h1 class="text-2xl font-bold">Order #{selectedOrder.id.toString().padStart(4, '0')}</h1>
+					<!-- svelte-ignore a11y_consider_explicit_label -->
+					<button
+						onclick={() => {
+							leftSidebar = false;
+						}}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"
+							><path
+								fill="currentColor"
+								d="m12 13.4l-4.9 4.9q-.275.275-.7.275t-.7-.275t-.275-.7t.275-.7l4.9-4.9l-4.9-4.9q-.275-.275-.275-.7t.275-.7t.7-.275t.7.275l4.9 4.9l4.9-4.9q.275-.275.7-.275t.7.275t.275.7t-.275.7L13.4 12l4.9 4.9q.275.275.275.7t-.275.7t-.7.275t-.7-.275z"
+							/></svg
+						>
+					</button>
+				</div>
 				<div class="space-y-2 rounded bg-black/20 p-3 leading-none">
 					<div class="space-y-1">
-						<p>Start:</p>
-						<p>End:</p>
+						<p>Message: {selectedOrder.message}</p>
+						<p>Pickup Time: {selectedOrder.time.slice(0, 2) + ':' + selectedOrder.time.slice(2)}</p>
 					</div>
+					<p>Items</p>
 					<ul class="mt-2 list-inside list-disc space-y-1 pl-2 leading-none">
-						{#each [1, 2, 3] as item}
-							<li>{item}</li>
+						{#each selectedOrder.items as item}
+							<li>{item.quantity} - {item.name}</li>
 						{/each}
 					</ul>
 				</div>
-				<button class="rounded bg-blue-700 p-4 text-white">Accept Order</button>
+				{#if !selectedOrder.fulfilled}
+					<button
+						class="rounded bg-blue-700 p-4 text-white"
+						onclick={() => {
+							fetch('http://localhost:3000/fulfil-request', {
+								redirect: 'error',
+								method: 'post',
+								headers: {
+									'Content-Type': 'application/json'
+								},
+								body: JSON.stringify({
+									order_id: selectedOrder.id
+								})
+							})
+								.then(() => {
+									alert('Accepted Order!');
+								})
+								.catch(() => {
+									alert('Something fucked up');
+								});
+						}}>Accept Order</button
+					>
+				{/if}
 			</div>
 		</div>
 	{/if}
@@ -151,9 +191,8 @@
 				<h1 class="text-xl font-bold">My Orders</h1>
 				{#each myOrders as order}
 					<div class="space-y-1 rounded bg-blue-700 p-3 leading-none text-white">
-						<p>Orderer:</p>
-						<p>Start:</p>
-						<p>End:</p>
+						<p>Order ID: {order.id}</p>
+						<p>Time: {order.time.slice(0, 2) + ':' + order.time.slice(2)}</p>
 					</div>
 				{:else}
 					<p class="text-center font-bold m-3">
@@ -171,9 +210,8 @@
 				</div>
 				{#each unfulfilledOrdersInRange as order}
 					<div class="space-y-1 rounded bg-black/20 p-3">
-						<p>Orderer:</p>
-						<p>Start:</p>
-						<p>End:</p>
+						<p>Order ID: {order.id}</p>
+						<p>Time: {order.time.slice(0, 2) + ':' + order.time.slice(2)}</p>
 					</div>
 				{:else}
 					<p class="text-center font-bold">No orders nearby</p>
