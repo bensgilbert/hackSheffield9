@@ -102,11 +102,12 @@ def userProfile():
         user_nickname = session.get('user').get('userinfo').get('nickname')
         is_email_verified = session.get('user').get('userinfo').get('email_verified')
 
-        account_details = [{
+        account_details = {
             "email": user_email,
             "nickname": user_nickname,
             "verified": is_email_verified
-        }]
+        }
+
 
         return json.dumps(account_details, sort_keys=False)
     else:
