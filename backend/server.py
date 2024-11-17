@@ -301,6 +301,7 @@ def createRequest():
             # Add the items to the OrderItem table
             for item in items:
                 order_item = OrderItem(
+                    order_id=new_order.id,
                     name=item['name'],
                     quantity=item['quantity']
                 )
