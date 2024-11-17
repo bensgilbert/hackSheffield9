@@ -83,7 +83,7 @@ def requests():
     else:
         return redirect(url_for("login"))
 
-@app.route("create-request")
+@app.route("/create-request")
 def createRequest():
     if isAuthorised():
         #add a new request to db
