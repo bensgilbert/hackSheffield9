@@ -9,6 +9,11 @@ from flask import Flask, redirect, render_template, session, url_for, jsonify
 
 from models import Order, engine, Account
 
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session, sessionmaker
+from sqlalchemy import create_engine, null, select, update
+from models import Order, Account, engine
+from sqlalchemy.ext.declarative import declarative_base
+
 ENV_FILE = find_dotenv()
 if ENV_FILE:
     load_dotenv(ENV_FILE)
@@ -26,6 +31,7 @@ oauth.register(
         "scope": "openid profile email",
     },
     server_metadata_url=f'https://{env.get("AUTH0_DOMAIN")}/.well-known/openid-configuration'
+
 )
 
 @app.route("/login")
@@ -59,6 +65,19 @@ def logout():
 # Checks if user in session - meaning logged in
 def isAuthorised():
     if 'user' in session:
+        
+        #Finds the user that is currently logged in in the database
+        with Session(engine) as db_session:
+            pass
+        userEmail = session.get('user').get('userinfo').get('email')
+        user = db_session.query(Account).filter_by(email=userEmail).first()
+
+        #If user is not in db then user is added 
+        if user == None:
+            new_user=Account(email=userEmail)
+            db_session.add(new_user)
+            db_session.commit()
+            db_session.close()
         return True
     else:
         return False
@@ -73,6 +92,7 @@ def home():
 def userProfile():
     if isAuthorised():
         # Get userEmail from the session to fetch user data from database
+
         userEmail = session.get('user').get('userinfo').get('user')
         return "get database data"
     else:
@@ -132,7 +152,6 @@ def requests():
     else:
         return redirect(url_for("login"))
 
-
 @app.route("/create-request")
 def createRequest():
     if isAuthorised():
@@ -144,8 +163,28 @@ def createRequest():
 @app.route("/fulfil-request")
 def fulfilRequest():
     if isAuthorised():
-        # mark request fulfilled
-        return "success message"
+
+        with Session(engine) as db_session:
+            pass
+
+        #ORDER HERE IS FOR TESTING PURPOSES REPLACE WITH ORDERID OF ORDER TO BE FURFILLED
+        new_order = Order(message='pending', account_id=5, lat="aa", lng="aaa", fufullied=0)  
+        db_session.add(new_order)
+        db_session.commit()
+        
+        userEmail = session.get('user').get('userinfo').get('email')
+
+        #Finds the user who wants to furfill the order 
+        user = db_session.query(Account).filter_by(email=userEmail).first()
+
+        #FINDS order to be furfilled and updates furfilled attribute of the model 
+        #Replace filterbyid field with the order to be furfilled 
+        order = db_session.query(Order).filter_by(id=new_order.id).first()
+        order.fulfilled = user.id
+        
+        db_session.commit()
+        db_session.close()
+        return "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
     else:
         return redirect(url_for("login"))
 
