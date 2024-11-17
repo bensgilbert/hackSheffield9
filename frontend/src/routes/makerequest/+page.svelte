@@ -142,7 +142,7 @@
 			});
 
 			if (response.ok) {
-				alert('Request submitted successfully!');
+				window.location.href = '/viewrequest';
 				// Optionally, clear the form or redirect
 			} else {
 				console.error('Failed to submit request');

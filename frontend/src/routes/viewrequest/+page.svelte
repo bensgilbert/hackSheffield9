@@ -24,17 +24,17 @@
 		loadGoogleMaps();
 
 		try {
-			const response = await fetch("http://localhost:3000/check-order");
+			const response = await fetch('http://localhost:3000/check-order');
 			if (response.ok) {
 				const data = await response.json();
 				if (!data.exists) {
-					window.location.href = "/makerequest"; // Redirect to makerequest
+					window.location.href = '/makerequest'; // Redirect to makerequest
 				}
 			} else {
-				console.error("Failed to check order existence");
+				console.error('Failed to check order existence');
 			}
 		} catch (error) {
-			console.error("Error checking order:", error);
+			console.error('Error checking order:', error);
 		}
 
 		fetch('http://localhost:3000/deliver-personal-order', {
@@ -128,6 +128,36 @@
 				<li>{item.name} - Quantity: {item.quantity}</li>
 			{/each}
 		</ul>
+
+		<!-- Cancel Button -->
+		<div class="mt-6">
+			<button
+				on:click={async () => {
+					try {
+						// Make a GET request to /completed-request
+						const response = await fetch('http://localhost:3000/completed-request', {
+							method: 'GET',
+							credentials: 'include' // Include cookies for session-based authentication
+						});
+
+						if (response.ok) {
+							console.log('Request completed successfully.');
+							// Redirect to /makerequest after successful completion
+							window.location.href = '/makerequest';
+						} else {
+							console.error('Failed to complete request:', response.statusText);
+							alert('Failed to complete the request. Please try again.');
+						}
+					} catch (error) {
+						console.error('Error making request to /completed-request:', error);
+						alert('An error occurred. Please try again.');
+					}
+				}}
+				class="w-full rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+			>
+				Cancel
+			</button>
+		</div>
 	</div>
 </div>
 

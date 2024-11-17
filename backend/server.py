@@ -273,6 +273,7 @@ def createRequest():
             # Add the items to the OrderItem table
             for item in items:
                 order_item = OrderItem(
+                    order_id=new_order.id,
                     name=item['name'],
                     quantity=item['quantity']
                 )
@@ -321,24 +322,26 @@ def fulfilRequest():
 @app.route("/completed-request")
 @cross_origin()
 def completeRequest():
-
     with Session(engine) as db_session:
         pass
 
     userEmail = session.get('user').get('userinfo').get('email')
     user = db_session.query(Account).filter_by(email=userEmail).first()
 
-    #ORDER HERE IS FOR TESTING PURPOSES REPLACE WITH ORDERID OF ORDER TO BE FURFILLED
-    new_order = Order(message='pending', account_id=5, lat="aa", lng="aaa", fufullied=user.id, collectionTime=1)  
-    db_session.add(new_order)
-    db_session.commit()
+    new_order = db_session.query(Order).filter_by(account_id=user.id).first()
+    if new_order:
+        items = db_session.query(OrderItem).filter_by(order_id=new_order.id).all()
+        for item in items:
+            db_session.delete(item)
+            db_session.commit()
+        db_session.delete(new_order)
+        db_session.commit()
+        db_session.close()
+        return "Successful"
+    else:
+        print(f"Order with id {user.id} not found")
+        return jsonify({"error": "Order not found"}), 404
 
-    order_to_delete = db_session.query(Order).filter_by(id=new_order.id).first()
-    db_session.delete(order_to_delete)
-    db_session.commit()
-    db_session.close()
-
-    return "ORDER DELETED"
 
 
 import os.path
@@ -378,6 +381,7 @@ def get_file(filename):  # pragma: no cover
 def test():
     content = get_file(os.path.join(root_dir(), "static", "index.html"))
     return Response(content, mimetype="text/html")
+
 
 @app.route('/<path:path>')
 def get_resource(path):  # pragma: no cover
