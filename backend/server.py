@@ -5,7 +5,9 @@ from urllib.parse import quote_plus, urlencode
 from sqlalchemy.orm import Session
 from authlib.integrations.flask_client import OAuth
 from dotenv import find_dotenv, load_dotenv
+
 from flask import Flask, redirect, render_template, session, request, url_for, jsonify
+
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session, sessionmaker
 from sqlalchemy import create_engine, null, select, update
@@ -102,28 +104,60 @@ def userProfile():
 @app.route("/requests")
 def requests():
     if isAuthorised():
+        user_email = session.get('user').get('userinfo').get('email')
         with Session(engine) as db_session:
-            # Query inside the session context
-            orders = db_session.query(Order).all()
+            user_id = db_session.query(Account).filter(Account.email == user_email).first().id
+            # Query to find orders which are not being fulfilled
+            unfulfilled_orders = db_session.query(Order).filter_by(fulfilled=None).all()
+            # Query to find orders which are being fulfilled by the user logged in
+            my_orders = db_session.query(Order).filter_by(fulfilled=user_id).all()
 
             # Check if orders are retrieved
-            if not orders:
-                print("No orders found!")
+            # If no data after retrievel will make error field
+            # MUST CHECK FOR ERROR WHEN USING THE JSON
+            if not unfulfilled_orders:
+                unfulfilled_orders_list = [
+                    {
+                        "error": "No unfulfilled orders :)"
+                    }
+                ]
+            else:
+                # Prepare the list of orders
+                unfulfilled_orders_list = [
+                    {
+                        "id": order.id,
+                        "message": order.message,
+                        "account_id": order.account_id,
+                        "lat": order.lat,
+                        "lng": order.lng,
+                        "fulfilled": order.fulfilled,
+                    }
+                    for order in unfulfilled_orders
+                ]
 
-            # Prepare the list of orders
-            orderList = [
-                {
-                    "id": order.id,
-                    "message": order.message,
-                    "account_id": order.account_id,
-                    "lat": order.lat,
-                    "lng": order.lng,
-                    "fulfilled": order.fulfilled,
-                }
-                for order in orders
-            ]
+            if not my_orders:
+                my_orders_list = [
+                    {
+                        "error": "You have not chosen any orders to fulfil :("
+                    }
+                ]
+            else:
+                my_orders_list = [
+                    {
+                        "id": order.id,
+                        "message": order.message,
+                        "account_id": order.account_id,
+                        "lat": order.lat,
+                        "lng": order.lng,
+                        "fulfilled": order.fulfilled,
+                    }
+                    for order in my_orders
+                ]
 
-            return json.dumps(orderList, sort_keys=False)
+            combination = [my_orders_list,unfulfilled_orders_list]
+
+
+            return json.dumps(combination, sort_keys=False)
     else:
         return redirect(url_for("login"))
 
