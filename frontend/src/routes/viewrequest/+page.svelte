@@ -68,9 +68,11 @@
 	}
 </script>
 
-<div class="container mx-auto p-4 relative">
+<div class="container relative mx-auto p-4">
 	<!-- Map Section -->
-	<div class="relative"><div bind:this={mapElement} class="h-[400px] w-full rounded-md bg-gray-300"></div></div>
+	<div class="relative">
+		<div bind:this={mapElement} class="h-[400px] w-full rounded-md bg-gray-300"></div>
+	</div>
 
 	<!-- Order Details Section -->
 	<div class="mt-4">
@@ -89,11 +91,3 @@
 		</ul>
 	</div>
 </div>
-
-<style>
-	.navbar {
-		background-color: #4f46e5;
-		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-	}
-</style>
-
