@@ -92,14 +92,23 @@ def isAuthorised():
         return False
 
 
-@app.route("/user")
+@app.route("/account")
 @cross_origin()
 def userProfile():
     if isAuthorised():
         # Get userEmail from the session to fetch user data from database
 
-        userEmail = session.get('user').get('userinfo').get('user')
-        return "get database data"
+        user_email = session.get('user').get('userinfo').get('email')
+        user_nickname = session.get('user').get('userinfo').get('nickname')
+        is_email_verified = session.get('user').get('userinfo').get('email_verified')
+
+        account_details = [{
+            "email": user_email,
+            "nickname": user_nickname,
+            "verified": is_email_verified
+        }]
+
+        return json.dumps(account_details, sort_keys=False)
     else:
         return redirect(url_for("login"))
 
@@ -117,6 +126,8 @@ def requests():
             # Query to find orders which are being fulfilled by the user logged in
             my_orders = db_session.query(Order).filter_by(fulfilled=user_id).all()
 
+            all_items = db_session.query(OrderItem).all()
+
             # Check if orders are retrieved
             # If no data after retrievel will make error field
             # MUST CHECK FOR ERROR WHEN USING THE JSON
@@ -127,18 +138,24 @@ def requests():
                     }
                 ]
             else:
-                # Prepare the list of orders
-                unfulfilled_orders_list = [
-                    {
-                        "id": order.id,
-                        "message": order.message,
-                        "account_id": order.account_id,
-                        "lat": order.lat,
-                        "lng": order.lng,
-                        "fulfilled": order.fulfilled,
-                    }
-                    for order in unfulfilled_orders
-                ]
+                for order in unfulfilled_orders:
+                    order_items = []
+                    for item in all_items:
+                        if item.order_id == order.id:
+                            order_items.append(item)
+                    # Prepare the list of orders
+                    unfulfilled_orders_list = [
+                        {
+                            "id": order.id,
+                            "message": order.message,
+                            "account_id": order.account_id,
+                            "lat": order.lat,
+                            "lng": order.lng,
+                            "fulfilled": order.fulfilled,
+                            "items": order_items,
+                            "time": order.collectionTime
+                        }
+                    ]
 
             if not my_orders:
                 my_orders_list = [
@@ -147,17 +164,23 @@ def requests():
                     }
                 ]
             else:
-                my_orders_list = [
-                    {
-                        "id": order.id,
-                        "message": order.message,
-                        "account_id": order.account_id,
-                        "lat": order.lat,
-                        "lng": order.lng,
-                        "fulfilled": order.fulfilled,
-                    }
-                    for order in my_orders
-                ]
+                for order in my_orders:
+                    order_items = []
+                    for item in all_items:
+                        if item.order_id == order.id:
+                            order_items.append(item)
+                    my_orders_list = [
+                        {
+                            "id": order.id,
+                            "message": order.message,
+                            "account_id": order.account_id,
+                            "lat": order.lat,
+                            "lng": order.lng,
+                            "fulfilled": order.fulfilled,
+                            "items": order_items,
+                            "time": order.collectionTime
+                        }
+                    ]
 
             combination = [my_orders_list,unfulfilled_orders_list]
 
