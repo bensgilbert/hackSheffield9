@@ -1,130 +1,136 @@
 <script>
-	import { myStyle } from '$lib/javascript/map';
+	import { goto } from '$app/navigation';
+	import { style } from '$lib/javascript/map';
 	import { onMount } from 'svelte';
+	import { slide } from 'svelte/transition';
 
-	let mapElement;
+	let container;
 	let map;
-	let lastClickedContent = '';
+	let filter = $state(10);
+	let leftSidebar = $state(false);
+	let rightSidebar = $state(false);
 
-	onMount(() => {
-		loadGoogleMaps();
-	});
-
-	// Loading google maps to the page
-	async function loadGoogleMaps() {
+	onMount(async () => {
 		const pkg = await import('@googlemaps/js-api-loader');
 		const { Loader } = pkg;
-
 		const loader = new Loader({
-			apiKey: 'REPLACE',
-			version: 'weekly',
-			libraries: ['places', 'maps']
+			apiKey: 'AIzaSyDB8EtJ3vK8gwJgTgjeNyvDLkUOYnal1GM',
+			libraries: ['maps', 'marker']
 		});
-
-		try {
-			await loader.load();
-			initMap();
-		} catch (e) {
-			console.error('Error loading Google Maps', e);
-		}
-	}
-
-	function initMap() {
-		const google = window.google;
-
-		// Key locations, will be the orders
-		const markers = [
-			{
-				locationName: 'The Diamond',
-				lat: 53.38182330444414,
-				lng: -1.4816028478377632,
-				address: '32 Leavygreave Rd<br>Sheffield<br>S3 7RD'
+		const { Map } = await loader.importLibrary('maps');
+		const { Marker } = await loader.importLibrary('marker');
+		map = new Map(container, {
+			center: {
+				lat: 0,
+				lng: 0
 			},
-			{
-				locationName: 'Sir Frederick Mappin Building',
-				lat: 53.38196206804772,
-				lng: -1.4788498911897958,
-				address: 'Mappin St<br>Sheffield<br>S1 3JD'
-			}
-		];
-
-		const markerIcon = '/shopping-basket.png';
-
-		const mapOptions = {
-			center: { lat: 13.736717, lng: 100.523186 },
-			zoom: 12,
 			disableDefaultUI: true,
-			gestureHandling: 'greedy',
-			styles: myStyle
-		};
-
-		map = new google.maps.Map(mapElement, mapOptions);
-
-		const bounds = new google.maps.LatLngBounds();
-
-		// Adds custom marker and adds listener to click on them
-		markers.forEach((markerData) => {
-			const marker = new google.maps.Marker({
-				position: { lat: markerData.lat, lng: markerData.lng },
-				map: map,
-				icon: {
-					url: markerIcon,
-					scaledSize: new google.maps.Size(40, 40)
-				},
-				title: markerData.title
-			});
-
-			google.maps.event.addListener(marker, 'click', () => {
-				// Update the last clicked content with the marker's title and description
-				lastClickedContent = `<h3>${markerData.locationName}</h3><p>${markerData.address}</p>`;
-			});
-
-			bounds.extend(new google.maps.LatLng(marker.lat, marker.lng));
-			map.fitBounds(bounds);
+			styles: style,
+			zoom: 1
 		});
-
-		// Request user's location
 		if (navigator.geolocation) {
-			navigator.geolocation.getCurrentPosition(
-				(position) => {
-					const userLat = position.coords.latitude;
-					const userLng = position.coords.longitude;
-
-					// Center the map to the user's location
-					map.setCenter({ lat: userLat, lng: userLng });
-					map.setZoom(15); // Zoom in a bit to focus on the user's location
-
-					// Add a marker for the user's location
-					const userMarker = new google.maps.Marker({
-						position: { lat: userLat, lng: userLng },
-						map: map,
-						title: 'You are here!'
-					});
-				},
-				(error) => {
-					console.error('Error getting location: ', error);
-				}
-			);
-		} else {
-			console.error('Geolocation is not supported by this browser.');
+			navigator.geolocation.getCurrentPosition(({ coords: { latitude, longitude } }) => {
+				map.setCenter({ lat: latitude, lng: longitude });
+				map.setZoom(16);
+				new Marker({
+					map,
+					position: { lat: latitude, lng: longitude }
+				});
+			});
 		}
-	}
+
+		fetch('http://localhost:3000/requests', {
+			redirect: 'error'
+		})
+			.then((response) => response.json())
+			.then((orders) => {
+				console.log(orders);
+			})
+			.catch(() => {
+				window.location = 'http://localhost:3000/login';
+			});
+	});
 </script>
 
-<div class="container mx-auto p-4">
-	<!-- Map Section -->
-	<div bind:this={mapElement} class="mb-6 mt-4 h-[400px] w-full rounded-md bg-gray-300"></div>
+<div bind:this={container} class="size-full"></div>
+
+<div class="absolute inset-y-0 left-0">
+	{#if leftSidebar}
+		<div
+			transition:slide={{ axis: 'x' }}
+			class="h-full w-80 space-y-8 text-nowrap bg-white p-4 shadow"
+		>
+			<div class="space-y-2 leading-none">
+				<h1 class="text-xl font-bold">Order #1234</h1>
+				<div class="space-y-2 rounded bg-black/20 p-3 leading-none">
+					<div class="space-y-1">
+						<p>Start:</p>
+						<p>End:</p>
+					</div>
+					<ul class="mt-2 list-inside list-disc space-y-1 pl-2 leading-none">
+						{#each [1, 2, 3] as item}
+							<li>{item}</li>
+						{/each}
+					</ul>
+				</div>
+				<button class="rounded bg-blue-700 p-4 text-white">Accept Order</button>
+			</div>
+		</div>
+	{/if}
 </div>
 
-<div id="marker-content">
-	<!-- Info Section -->
-	{@html lastClickedContent}
+<div class="absolute inset-y-0 right-0">
+	{#if rightSidebar}
+		<div
+			transition:slide={{ axis: 'x' }}
+			class="h-full w-80 space-y-8 overflow-y-auto text-nowrap bg-white p-4 shadow"
+		>
+			<div class="space-y-2 leading-none">
+				<h1 class="text-xl font-bold">My Orders</h1>
+				{#each [1, 2, 3] as order}
+					<div class="space-y-1 rounded bg-blue-700 p-3 leading-none text-white">
+						<p>Orderer:</p>
+						<p>Start:</p>
+						<p>End:</p>
+					</div>
+				{:else}
+					<p class="text-center font-bold m-3">
+						You have no orders to fufil,
+						<br />
+						accept one from below
+					</p>
+				{/each}
+			</div>
+			<div class="space-y-3 leading-none">
+				<h1 class="text-xl font-bold">Suggested Orders</h1>
+				<div>
+					<input bind:value={filter} class="w-full" type="range" min="1" max="50" />
+					<p>Range: {filter}km</p>
+				</div>
+				{#each [1, 2, 3] as order}
+					<div class="space-y-1 rounded bg-black/20 p-3">
+						<p>Orderer:</p>
+						<p>Start:</p>
+						<p>End:</p>
+					</div>
+				{:else}
+					<p class="text-center font-bold">No orders nearby</p>
+				{/each}
+			</div>
+		</div>
+	{/if}
+	<!-- svelte-ignore a11y_consider_explicit_label -->
+	<button
+		class="absolute left-0 top-4 -translate-x-full rounded-l bg-blue-700 p-2 text-white"
+		onclick={() => {
+			rightSidebar = !rightSidebar;
+		}}
+	>
+		<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"
+			><path
+				fill="currentColor"
+				d="M4 18q-.425 0-.712-.288T3 17t.288-.712T4 16h16q.425 0 .713.288T21 17t-.288.713T20 18zm0-5q-.425 0-.712-.288T3 12t.288-.712T4 11h16q.425 0 .713.288T21 12t-.288.713T20 13zm0-5q-.425 0-.712-.288T3 7t.288-.712T4 6h16q.425 0 .713.288T21 7t-.288.713T20 8z"
+			/></svg
+		>
+	</button>
 </div>
-
-<style>
-	/* Custom styles (change) */
-	.navbar {
-		background-color: #4f46e5; /* Tailwind Indigo color */
-		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-	}
-</style>
