@@ -79,16 +79,14 @@ def isAuthorised():
         
         #Finds the user that is currently logged in in the database
         with Session(engine) as db_session:
-            pass
-        userEmail = session.get('user').get('userinfo').get('email')
-        user = db_session.query(Account).filter_by(email=userEmail).first()
+            userEmail = session.get('user').get('userinfo').get('email')
+            user = db_session.query(Account).filter_by(email=userEmail).first()
 
-        #If user is not in db then user is added 
-        if user == None:
-            new_user=Account(email=userEmail)
-            db_session.add(new_user)
-            db_session.commit()
-            db_session.close()
+            #If user is not in db then user is added 
+            if user == None:
+                new_user=Account(email=userEmail)
+                db_session.add(new_user)
+                db_session.commit()
         return True
     else:
         return False
@@ -171,10 +169,8 @@ def requests():
 @app.route("/create-request", methods=["POST"])
 @cross_origin()
 def createRequest():
-    print("POST request received")
     if isAuthorised():
         data = request.get_json()
-        print(f"Request Data: {data}")
 
         # Extract the order data
         message = data.get("message")
@@ -209,7 +205,6 @@ def createRequest():
             # Add the items to the OrderItem table
             for item in items:
                 order_item = OrderItem(
-                    order_id=new_order.id,
                     name=item['name'],
                     quantity=item['quantity']
                 )
@@ -287,8 +282,7 @@ def root_dir():  # pragma: no cover
 def get_file(filename):  # pragma: no cover
     if filename == "/":
         filename = "index.html"
-    
-    print("FILENAME", filename)
+
     try:
         src = os.path.join(root_dir(), filename)
         # Figure out how flask returns static files
@@ -324,7 +318,6 @@ def get_resource(path):  # pragma: no cover
         ".js": "application/javascript",
         ".png": "image/png"
     }
-    print("OMFG", path)
     complete_path = os.path.join(root_dir(), "static", path)
     ext = os.path.splitext(path)[1]
     mimetype = mimetypes.get(ext, "text/html")

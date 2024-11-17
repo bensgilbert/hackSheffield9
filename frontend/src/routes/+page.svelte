@@ -10,18 +10,30 @@
 	let leftSidebar = $state(false);
 	let rightSidebar = $state(false);
 
+	let selectedOrder = $state();
 	let myOrders = $state([]);
 	let unfulfilledOrders = $state([]);
+	let unfulfilledOrdersInRange = $state([]);
+
+	$effect(() => {
+		unfulfilledOrdersInRange = unfulfilledOrders.filter(
+			(order) => order.distanceInKilometers < filter
+		);
+	});
 
 	onMount(async () => {
 		const pkg = await import('@googlemaps/js-api-loader');
 		const { Loader } = pkg;
+
 		const loader = new Loader({
 			apiKey: 'AIzaSyDB8EtJ3vK8gwJgTgjeNyvDLkUOYnal1GM',
 			libraries: ['maps', 'marker']
 		});
+
 		const { Map } = await loader.importLibrary('maps');
 		const { Marker } = await loader.importLibrary('marker');
+		const { spherical } = await loader.importLibrary('geometry');
+
 		map = new Map(container, {
 			center: {
 				lat: 0,
@@ -31,6 +43,7 @@
 			styles: style,
 			zoom: 1
 		});
+
 		if (navigator.geolocation) {
 			navigator.geolocation.getCurrentPosition(({ coords: { latitude, longitude } }) => {
 				map.setCenter({ lat: latitude, lng: longitude });
@@ -63,17 +76,39 @@
 				if (unfulfilledOrders.length > 0 && unfulfilledOrders[0].error) {
 				} else {
 					unfulfilledOrders.forEach((order) => {
-						new Marker({
+						const marker = new Marker({
 							map,
 							position: { lat: parseFloat(order.lat), lng: parseFloat(order.lng) },
 							icon: {
 								url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
 							}
 						});
+						marker.addListener('click', () => {
+							console.log(order);
+							
+							selectedOrder = order;
+							leftSidebar = true;
+						});
+						navigator.geolocation.getCurrentPosition(({ coords: { latitude, longitude } }) => {
+							const currentPosition = new google.maps.LatLng(latitude, longitude);
+							const orderPosition = new google.maps.LatLng(
+								parseFloat(order.lat),
+								parseFloat(order.lng)
+							);
+
+							// Use spherical.computeDistanceBetween to get distance in meters
+							const distanceInMeters = spherical.computeDistanceBetween(
+								currentPosition,
+								orderPosition
+							);
+							const distanceInKilometers = distanceInMeters / 1000; // Convert to kilometers
+
+							order.distanceInKilometers = distanceInKilometers;
+						});
 					});
 				}
 			})
-			.catch(() => {
+			.catch((reason) => {
 				window.location = 'http://localhost:3000/login';
 			});
 	});
@@ -114,7 +149,7 @@
 		>
 			<div class="space-y-2 leading-none">
 				<h1 class="text-xl font-bold">My Orders</h1>
-				{#each [1, 2, 3] as order}
+				{#each myOrders as order}
 					<div class="space-y-1 rounded bg-blue-700 p-3 leading-none text-white">
 						<p>Orderer:</p>
 						<p>Start:</p>
@@ -131,10 +166,10 @@
 			<div class="space-y-3 leading-none">
 				<h1 class="text-xl font-bold">Suggested Orders</h1>
 				<div>
-					<input bind:value={filter} class="w-full" type="range" min="1" max="50" />
+					<input bind:value={filter} class="w-full" type="range" min="2" max="20" />
 					<p>Range: {filter}km</p>
 				</div>
-				{#each [1, 2, 3] as order}
+				{#each unfulfilledOrdersInRange as order}
 					<div class="space-y-1 rounded bg-black/20 p-3">
 						<p>Orderer:</p>
 						<p>Start:</p>
