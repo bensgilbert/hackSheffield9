@@ -2,14 +2,16 @@ import json
 from os import environ as env
 from urllib.parse import quote_plus, urlencode
 
+from sqlalchemy.orm import Session
 from authlib.integrations.flask_client import OAuth
 from dotenv import find_dotenv, load_dotenv
-from flask import Flask, redirect, render_template, session, url_for
+from flask import Flask, redirect, render_template, session, request, url_for, jsonify
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session, sessionmaker
 from sqlalchemy import create_engine, null, select, update
-from models import Order, Account, engine
+from models import Order, OrderItem, Account, engine
 from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
 
 ENV_FILE = find_dotenv()
 if ENV_FILE:
@@ -89,23 +91,88 @@ def home():
 def userProfile():
     if isAuthorised():
         # Get userEmail from the session to fetch user data from database
+
+        userEmail = session.get('user').get('userinfo').get('user')
         return "get database data"
     else:
         return redirect(url_for("login"))
 
+# Takes all orders from order table and stores in list
+# Outputted as JSON
 @app.route("/requests")
 def requests():
     if isAuthorised():
-        # get data from db into list
-        return "list of requests"
+        with Session(engine) as db_session:
+            # Query inside the session context
+            orders = db_session.query(Order).all()
+
+            # Check if orders are retrieved
+            if not orders:
+                print("No orders found!")
+
+            # Prepare the list of orders
+            orderList = [
+                {
+                    "id": order.id,
+                    "message": order.message,
+                    "account_id": order.account_id,
+                    "lat": order.lat,
+                    "lng": order.lng,
+                    "fulfilled": order.fulfilled,
+                }
+                for order in orders
+            ]
+
+            return json.dumps(orderList, sort_keys=False)
     else:
         return redirect(url_for("login"))
 
-@app.route("/create-request")
+@app.route("/create-request", methods=["POST"])
 def createRequest():
     if isAuthorised():
-        #add a new request to db
-        return "success message"
+        data = request.get_json()
+
+        # Extract the order data
+        message = data.get("message")
+        # account_id = data.get("account_id")
+        lat = data.get("lat")
+        lng = data.get("lng")
+        address = data.get("address")
+        collection_time = data.get("collectionTime")
+        items = data.get("items")
+
+        userEmail = session.get('user').get('userinfo').get('email')
+        user = db_session.query(Account).filter_by(email=userEmail).first()
+
+        # Create the new Order
+        new_order = Order(
+            message=message,
+            account_id=user.id,
+            lat=lat,
+            lng=lng,
+            address=address,
+            collectionTime=collection_time,
+            fufullied=None  # Initially, order is not fulfilled
+        )
+
+        # Add the order to the session and commit
+        with Session() as db_session:
+            db_session.add(new_order)
+            db_session.commit()
+
+            # Add the items to the OrderItem table
+            for item in items:
+                order_item = OrderItem(
+                    order_id=new_order.id,
+                    name=item['name'],
+                    quantity=item['quantity']
+                )
+                db_session.add(order_item)
+            
+            db_session.commit()
+
+        # Redirect to the view request page with the new order's ID
+        return redirect(url_for("viewRequest", order_id=new_order.id))
     else:
         return redirect(url_for("login"))
 
