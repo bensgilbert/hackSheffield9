@@ -65,7 +65,7 @@ def logout():
         + "/v2/logout?"
         + urlencode(
             {
-                "returnTo": url_for("home", _external=True),
+                "returnTo": url_for("login", _external=True),
                 "client_id": env.get("AUTH0_CLIENT_ID"),
             },
             quote_via=quote_plus,
@@ -79,29 +79,37 @@ def isAuthorised():
         
         #Finds the user that is currently logged in in the database
         with Session(engine) as db_session:
-            pass
-        userEmail = session.get('user').get('userinfo').get('email')
-        user = db_session.query(Account).filter_by(email=userEmail).first()
+            userEmail = session.get('user').get('userinfo').get('email')
+            user = db_session.query(Account).filter_by(email=userEmail).first()
 
-        #If user is not in db then user is added 
-        if user == None:
-            new_user=Account(email=userEmail)
-            db_session.add(new_user)
-            db_session.commit()
-            db_session.close()
+            #If user is not in db then user is added 
+            if user == None:
+                new_user=Account(email=userEmail)
+                db_session.add(new_user)
+                db_session.commit()
         return True
     else:
         return False
 
 
-@app.route("/user")
+@app.route("/account-details")
 @cross_origin()
 def userProfile():
     if isAuthorised():
         # Get userEmail from the session to fetch user data from database
 
-        userEmail = session.get('user').get('userinfo').get('user')
-        return "get database data"
+        user_email = session.get('user').get('userinfo').get('email')
+        user_nickname = session.get('user').get('userinfo').get('nickname')
+        is_email_verified = session.get('user').get('userinfo').get('email_verified')
+
+        account_details = {
+            "email": user_email,
+            "nickname": user_nickname,
+            "verified": is_email_verified
+        }
+
+
+        return json.dumps(account_details, sort_keys=False)
     else:
         return redirect(url_for("login"))
 
@@ -119,6 +127,8 @@ def requests():
             # Query to find orders which are being fulfilled by the user logged in
             my_orders = db_session.query(Order).filter_by(fulfilled=user_id).all()
 
+            all_items = db_session.query(OrderItem).all()
+
             # Check if orders are retrieved
             # If no data after retrievel will make error field
             # MUST CHECK FOR ERROR WHEN USING THE JSON
@@ -129,18 +139,28 @@ def requests():
                     }
                 ]
             else:
-                # Prepare the list of orders
-                unfulfilled_orders_list = [
-                    {
-                        "id": order.id,
-                        "message": order.message,
-                        "account_id": order.account_id,
-                        "lat": order.lat,
-                        "lng": order.lng,
-                        "fulfilled": order.fulfilled,
-                    }
-                    for order in unfulfilled_orders
-                ]
+                unfulfilled_orders_list = []
+                for order in unfulfilled_orders:
+                    order_items = []
+                    for item in all_items:
+                        if item.order_id == order.id:
+                            order_items.append({
+                                "name": item.name,
+                                "quantity": item.quantity
+                            })
+                    # Prepare the list of orders
+                    unfulfilled_orders_list.append(
+                        {
+                            "id": order.id,
+                            "message": order.message,
+                            "account_id": order.account_id,
+                            "lat": order.lat,
+                            "lng": order.lng,
+                            "fulfilled": order.fulfilled,
+                            "items": order_items,
+                            "time": order.collectionTime
+                        }
+                    )
 
             if not my_orders:
                 my_orders_list = [
@@ -149,17 +169,27 @@ def requests():
                     }
                 ]
             else:
-                my_orders_list = [
-                    {
-                        "id": order.id,
-                        "message": order.message,
-                        "account_id": order.account_id,
-                        "lat": order.lat,
-                        "lng": order.lng,
-                        "fulfilled": order.fulfilled,
-                    }
-                    for order in my_orders
-                ]
+                my_orders_list = []
+                for order in my_orders:
+                    order_items = []
+                    for item in all_items:
+                        if item.order_id == order.id:
+                            order_items.append({
+                                "name": item.name,
+                                "quantity": item.quantity
+                            })
+                    my_orders_list.append(
+                        {
+                            "id": order.id,
+                            "message": order.message,
+                            "account_id": order.account_id,
+                            "lat": order.lat,
+                            "lng": order.lng,
+                            "fulfilled": order.fulfilled,
+                            "items": order_items,
+                            "time": order.collectionTime
+                        }
+                    )
 
             combination = [my_orders_list,unfulfilled_orders_list]
 
@@ -235,10 +265,8 @@ def checkOrder():
 @app.route("/create-request", methods=["POST"])
 @cross_origin()
 def createRequest():
-    print("POST request received")
     if isAuthorised():
         data = request.get_json()
-        print(f"Request Data: {data}")
 
         # Extract the order data
         message = data.get("message")
@@ -273,7 +301,6 @@ def createRequest():
             # Add the items to the OrderItem table
             for item in items:
                 order_item = OrderItem(
-                    order_id=new_order.id,
                     name=item['name'],
                     quantity=item['quantity']
                 )
@@ -288,33 +315,30 @@ def createRequest():
         print("Unauthorized access attempt")
         return redirect(url_for("login"))
 
-@app.route("/fulfil-request")
+@app.route("/fulfil-request", methods=["POST"])
 @cross_origin()
 def fulfilRequest():
     if isAuthorised():
+        data = request.get_json()
+
+        # Extract the order data
+        order_id = data.get("order_id")
 
         with Session(engine) as db_session:
-            pass
+            userEmail = session.get('user').get('userinfo').get('email')
 
-        #ORDER HERE IS FOR TESTING PURPOSES REPLACE WITH ORDERID OF ORDER TO BE FURFILLED
-        new_order = Order(message='pending', account_id=5, lat="aa", lng="aaa", fufullied=0, collectionTime=1)  
-        db_session.add(new_order)
-        db_session.commit()
-        
-        userEmail = session.get('user').get('userinfo').get('email')
+            #Finds the user who wants to furfill the order 
+            user = db_session.query(Account).filter_by(email=userEmail).first()
 
-        #Finds the user who wants to furfill the order 
-        user = db_session.query(Account).filter_by(email=userEmail).first()
+            #FINDS order to be furfilled and updates furfilled attribute of the model 
+            #Replace filterbyid field with the order to be furfilled 
+            order = db_session.query(Order).filter_by(id=order_id).first()
+            order.fulfilled = user.id
 
-        #FINDS order to be furfilled and updates furfilled attribute of the model 
-        #Replace filterbyid field with the order to be furfilled 
-        order = db_session.query(Order).filter_by(id=new_order.id).first()
-        order.fulfilled = user.id
-
-        thing = order.fulfilled 
-        
-        db_session.commit()
-        db_session.close()
+            thing = order.fulfilled 
+            
+            db_session.commit()
+            db_session.close()
         return str(thing)
     else:
         return redirect(url_for("login"))
@@ -353,8 +377,7 @@ def root_dir():  # pragma: no cover
 def get_file(filename):  # pragma: no cover
     if filename == "/":
         filename = "index.html"
-    
-    print("FILENAME", filename)
+
     try:
         src = os.path.join(root_dir(), filename)
         # Figure out how flask returns static files
@@ -391,7 +414,6 @@ def get_resource(path):  # pragma: no cover
         ".js": "application/javascript",
         ".png": "image/png"
     }
-    print("OMFG", path)
     complete_path = os.path.join(root_dir(), "static", path)
     ext = os.path.splitext(path)[1]
     mimetype = mimetypes.get(ext, "text/html")

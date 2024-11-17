@@ -1,7 +1,7 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 from sqlalchemy import create_engine, select
 
-engine = create_engine("sqlite:///neighboury.db", echo=True)
+engine = create_engine("sqlite:///neighboury.db")
 
 
 class Base(DeclarativeBase):
