@@ -95,7 +95,7 @@
 	// Form Data
 	let time = '';
 	let items = [{ name: '', quantity: 1 }];
-	let message = '';  // Message for the order
+	let message = ''; // Message for the order
 	let address = '';
 
 	// Add a new item field
@@ -116,12 +116,12 @@
 			lat: pinLatLng.lat,
 			lng: pinLatLng.lng,
 			address: searchInputElement.value, // Address is captured from the map
-			collectionTime: time, // Delivery time
+			collectionTime: formatTime(time), // Delivery time
 			items: items // Items list
 		};
 
 		try {
-			const response = await fetch('http://127.0.0.1:300/create-request', {
+			const response = await fetch('http://127.0.0.1:3000/create-request', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(requestData)
@@ -136,6 +136,12 @@
 		} catch (error) {
 			console.error('Error submitting request: ', error);
 		}
+	}
+
+	// Function to format time from HH:mm to HHmm
+	function formatTime(time) {
+		const [hours, minutes] = time.split(':'); // Split the time into hours and minutes
+		return `${hours}${minutes}`; // Combine hours and minutes into a single string (HHmm)
 	}
 </script>
 

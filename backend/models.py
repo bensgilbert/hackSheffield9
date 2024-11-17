@@ -26,7 +26,7 @@ class Order(Base):
     address: Mapped[str] = mapped_column(nullable=False)
     collectionTime: Mapped[int] = mapped_column(nullable=True)
     fufullied: Mapped[int] = mapped_column(nullable=True)
-    collectionTime: Mapped[int] = mapped_column(nullable=False)
+    collectionTime: Mapped[str] = mapped_column(nullable=False)
 
 
 class OrderItem(Base):

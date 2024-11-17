@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from authlib.integrations.flask_client import OAuth
 from dotenv import find_dotenv, load_dotenv
 from flask import Flask, redirect, render_template, session, request, url_for, jsonify
+from flask_cors import CORS
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session, sessionmaker
 from sqlalchemy import create_engine, null, select, update
@@ -18,6 +19,7 @@ if ENV_FILE:
     load_dotenv(ENV_FILE)
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = env.get("APP_SECRET_KEY")
 
 oauth = OAuth(app)
@@ -129,12 +131,13 @@ def requests():
 
 @app.route("/create-request", methods=["POST"])
 def createRequest():
+    print("POST request received")
     if isAuthorised():
         data = request.get_json()
+        print(f"Request Data: {data}")
 
         # Extract the order data
         message = data.get("message")
-        # account_id = data.get("account_id")
         lat = data.get("lat")
         lng = data.get("lng")
         address = data.get("address")
@@ -156,7 +159,7 @@ def createRequest():
         )
 
         # Add the order to the session and commit
-        with Session() as db_session:
+        with Session(engine) as db_session:
             db_session.add(new_order)
             db_session.commit()
 
@@ -172,8 +175,10 @@ def createRequest():
             db_session.commit()
 
         # Redirect to the view request page with the new order's ID
-        return redirect(url_for("viewRequest", order_id=new_order.id))
+        # return redirect(url_for("viewRequest", order_id=new_order.id))
+        return "Request created successfully!"
     else:
+        print("Unauthorized access attempt")
         return redirect(url_for("login"))
 
 @app.route("/fulfil-request")
