@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from authlib.integrations.flask_client import OAuth
 from dotenv import find_dotenv, load_dotenv
 
-from flask import Flask, redirect, render_template, session, request, url_for, jsonify
+from flask import Flask, redirect, render_template, session, request, url_for, jsonify, Response
 
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session, sessionmaker
@@ -96,7 +96,7 @@ def isAuthorised():
 @app.route("/")
 @cross_origin()
 def home():
-    return render_template("test.html", session=session.get('user'), pretty=json.dumps(session.get('user'), indent=4))
+    return render_template("index.html", session=session.get('user'), pretty=json.dumps(session.get('user'), indent=4))
 
 @app.route("/user")
 @cross_origin()
@@ -275,6 +275,37 @@ def completeRequest():
 
     return "ORDER DELETED"
 
+
+import os.path
+
+def root_dir():  # pragma: no cover
+    return os.path.abspath(os.path.dirname(__file__))
+
+
+def get_file(filename):  # pragma: no cover
+    try:
+        src = os.path.join(root_dir(), filename)
+        # Figure out how flask returns static files
+        # Tried:
+        # - render_template
+        # - send_file
+        # This should not be so non-obvious
+        return open(src).read()
+    except IOError as exc:
+        return str(exc)
+
+@app.route('/<path:path>')
+def get_resource(path):  # pragma: no cover
+    mimetypes = {
+        ".css": "text/css",
+        ".html": "text/html",
+        ".js": "application/javascript",
+    }
+    complete_path = os.path.join(root_dir(), "static", path)
+    ext = os.path.splitext(path)[1]
+    mimetype = mimetypes.get(ext, "text/html")
+    content = get_file(complete_path)
+    return Response(content, mimetype=mimetype)
 
 
 
