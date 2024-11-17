@@ -166,6 +166,7 @@ def requests():
                         "lat": order.lat,
                         "lng": order.lng,
                         "fulfilled": order.fulfilled,
+                        "address": order.address,
                     }
                     for order in my_orders
                 ]
