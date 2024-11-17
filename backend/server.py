@@ -290,16 +290,29 @@ def get_file(filename):  # pragma: no cover
         # - render_template
         # - send_file
         # This should not be so non-obvious
-        return open(src).read()
+        return open(src, "rb").read()
+    except IOError as exc:
+        pass
+    
+    try:
+        src = os.path.join(root_dir(), f"{filename}.html")
+        # Figure out how flask returns static files
+        # Tried:
+        # - render_template
+        # - send_file
+        # This should not be so non-obvious
+        return open(src, "rb").read()
     except IOError as exc:
         return str(exc)
 
 @app.route('/<path:path>')
 def get_resource(path):  # pragma: no cover
+    print(path)
     mimetypes = {
         ".css": "text/css",
         ".html": "text/html",
         ".js": "application/javascript",
+        ".png": "image/png"
     }
     complete_path = os.path.join(root_dir(), "static", path)
     ext = os.path.splitext(path)[1]
