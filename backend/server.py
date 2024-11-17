@@ -92,7 +92,7 @@ def isAuthorised():
         return False
 
 
-@app.route("/account")
+@app.route("/account-details")
 @cross_origin()
 def userProfile():
     if isAuthorised():

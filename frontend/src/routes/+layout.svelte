@@ -1,6 +1,23 @@
 <script>
 	import '../app.css';
 	let { children } = $props();
+	import {onMount} from "svelte";
+
+	let accountDetail = $state({})
+
+	onMount(async () => {
+
+		fetch('http://localhost:3000/account-details', {
+			redirect: 'error'
+		})
+				.then((response) => response.json())
+				.then((account) => {
+					accountDetail = account;
+				})
+				.catch(() => {
+					window.location = 'http://localhost:3000/login';
+				});
+	});
 </script>
 
 <div class="fixed inset-0 flex min-h-dvh flex-col">
